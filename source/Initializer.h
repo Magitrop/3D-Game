@@ -4,6 +4,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H  
+
 #define Initializer InitializationHandler::Instance()
 
 using glm::Vector2;
@@ -65,6 +68,22 @@ public:
 
 		cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
 		cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
+
+		FT_Library ft;
+		if (FT_Init_FreeType(&ft))
+		{
+			std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+			return -1;
+		}
+
+		FT_Face face;
+		if (FT_New_Face(ft, "../fonts/ekaterinavelikayatwo.ttf", 0, &face))
+		{
+			std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+			return -1;
+		}
+
+
 
 		return true;
 	}

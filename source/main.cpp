@@ -418,7 +418,7 @@ int main(int argc, char* argv[])
 		if (rmb)
 		{
 			cameraRotation.x -= mouseMotion.y * cameraRotationSpeed;
-			cameraRotation.x = std::clamp(cameraRotation.x, 0.0f, glm::radians(80.0f));
+			//cameraRotation.x = std::clamp(cameraRotation.x, 0.0f, glm::radians(80.0f));
 
 			cameraRotation.y -= mouseMotion.x * cameraRotationSpeed;
 		}

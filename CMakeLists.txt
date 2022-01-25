@@ -4,6 +4,9 @@ set(project_name opengl)
 
 project(${project_name})
 
+include_directories(libraries/freetype/include)
+find_library(FreetypeLib freetype "libraries/freetype/release dll/win64")
+
 add_executable(
     ${project_name}
         source/main.cpp
@@ -22,8 +25,6 @@ add_executable(
 
         source/Math/Vectors.cpp
         source/Math/Vectors.h
-
-
 )
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -39,3 +40,6 @@ target_link_libraries(${PROJECT_NAME} glad)
 
 add_subdirectory(libraries/glm)
 target_link_libraries(${PROJECT_NAME} glm)
+
+target_link_libraries(${PROJECT_NAME} ${FreetypeLib})
+target_include_directories(${PROJECT_NAME} PRIVATE "libraries/freetype/include")
