@@ -13,6 +13,9 @@ add_executable(
 
         source/Initializer.h
 
+        source/Shaders/Shader.h
+        source/Shaders/Shader.cpp
+
         source/Components/Component.cpp
         source/Components/Component.h
         source/Components/TransformComponent.cpp

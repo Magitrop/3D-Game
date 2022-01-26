@@ -21,6 +21,7 @@
 #include "ObjectsManager.h"
 
 class TransformComponent;
+class ObjectsManager;
 class GameObject final
 {
 private:
@@ -28,14 +29,9 @@ private:
 
 	void operator delete (void*) {}
 	GameObject(const GameObject& other) = delete;
+	GameObject();
 
-	GameObject() : name("New Object")
-	{
-		// every game object must contain irremovable transform component
-		AddComponent<TransformComponent>();
-	}
-
-	template<class T> static T* CreateInstance()
+	template<typename T> static T* CreateInstance()
 	{
 		static_assert(std::is_base_of<Component, T>::value, "Only GameObject may be instantiated.");
 
