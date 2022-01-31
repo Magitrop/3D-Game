@@ -1,7 +1,5 @@
 #include "GameObject.h"
+#include "../Components/TransformComponent.h"
 
-GameObject::GameObject() : name("New Object")
-{
-	// every game object must contain irremovable transform component
-	AddComponent<TransformComponent>();
-}
+// every game object must contain irremovable transform component
+GameObject::GameObject() : name("New Object"), transform(AddComponent<TransformComponent>()) {}

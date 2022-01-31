@@ -1,108 +1,76 @@
 #pragma once
-#include <iostream>
-#include <map>
-#include <list>
-#include <memory>
-#include <type_traits>
-#include <concepts>
-#include <string>
-#include <optional>
-
-#define _USE_MATH_DEFINES
-#include <cmath>
-
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "../Components/Component.h"
 #include "../Components/TransformComponent.h"
-#include "../Math/Vectors.h"
-#include "ObjectsManager.h"
 
-class TransformComponent;
-class ObjectsManager;
-class GameObject final
+#include <map>
+#include <string>
+#include <list>
+#include <typeinfo>
+#include <iostream>
+
+class GameObject final 
 {
-private:
-	friend class ObjectsManager;
+    friend class ObjectsManager;
+    friend class EventSystem;
 
-	void operator delete (void*) {}
-	GameObject(const GameObject& other) = delete;
-	GameObject();
+    std::map<std::string, Component*> components;
+    explicit GameObject();
 
-	template<typename T> static T* CreateInstance()
-	{
-		static_assert(std::is_base_of<Component, T>::value, "Only GameObject may be instantiated.");
+    void operator delete(void* ptr)
+    {
+        ::operator delete(ptr);
+    }
 
-		GameObject* obj = new GameObject();
-		obj->template AddComponent<T>();
-		return obj->template GetComponent<T>();
-	}
-	template<> static GameObject* CreateInstance<GameObject>()
-	{
-		return new GameObject();
-	}
-
-	std::map<const std::string, std::list<Component>> components;
+    void operator delete[](void* ptr)
+    {
+        ::operator delete[](ptr);
+    }
 public:
-	GameObject(GameObject&&) = default;
-	~GameObject()
-	{
-		std::cout << "destroyed game object" << std::endl;
-	}
+    std::string name;
+    TransformComponent* const transform;
 
-	std::string name;
+    ~GameObject() 
+    {
+        for (const auto&[componentName, component] : components)
+        {
+            delete component;
+        }
+        components.clear();
+    }
 
-	template<class T> void AddComponent()
-	{
-		static_assert(std::is_base_of<Component, T>::value, "Type must be inherited from Component.");
+    template<class T, class =
+        std::enable_if<
+        std::is_base_of<Component, T>::value>::type>
+        T* AddComponent()
+    {
+        if (components.find(typeid(T).name()) != components.end())
+            return GetComponent<T>();
 
-		std::string componentTypeName = typeid(T).name();
+        return static_cast<T*>(components[typeid(T).name()] = new T(this));
+    }
 
-		if (std::is_base_of<MustBeUniqueComponentAttribute, T>::value &&
-			components.find(componentTypeName) != components.end())
-		{
-			std::cerr << "Cannot add another \"" << componentTypeName << "\" component." << std::endl;
-			return;
-		}
+    template<class T, class =
+        std::enable_if<
+        std::is_base_of<Component, T>::value>::type>
+        T* GetComponent()
+    {
+        if (components.find(typeid(T).name()) == components.end()) 
+            return nullptr;
 
-		components[componentTypeName].emplace_back(this);
-	}
-	template<class T> void RemoveComponent(int withIndex = 0)
-	{
-		static_assert(std::is_base_of<Component, T>::value, "Type must be inherited from Component.");
-		static_assert(!std::is_base_of<CannotBeRemovedComponentAttribute, T>::value, "This Component cannot be removed.");
+        return static_cast<T*>(components[typeid(T).name()]);
+    }
 
-		std::string componentTypeName = typeid(T).name();
+    template<class T, class =
+        std::enable_if<
+        std::is_base_of<Component, T>::value>::type>
+        void RemoveComponent()
+    {
+        auto componentName = typeid(T).name();
+        if (components.find(componentName) == components.end()) 
+            return;
 
-		if (components.find(componentTypeName) == components.end() ||
-			components[componentTypeName].size() <= withIndex)
-		{
-			std::cerr << "The requested component \"" << componentTypeName << "\" was not found." << std::endl;
-			return;
-		}
-
-		auto at = components[componentTypeName].begin();
-		std::advance(at, withIndex);
-		components[componentTypeName].erase(at);
-
-		if (components[componentTypeName].size() == 0)
-			components.erase(componentTypeName);
-	}
-
-	template<class T> T* GetComponent(int withIndex = 0)
-	{
-		static_assert(std::is_base_of<Component, T>::value, "Type must be inherited from Component.");
-
-		std::string componentTypeName = typeid(T).name();
-
-		if (components.find(componentTypeName) == components.end() ||
-			components[componentTypeName].size() <= withIndex)
-			return nullptr;
-
-		auto comp = components[componentTypeName].begin();
-		std::advance(comp, withIndex);
-		return static_cast<T*>(&*comp);
-	}
+        delete components[componentName];
+        components.erase(componentName);
+    }
 };
