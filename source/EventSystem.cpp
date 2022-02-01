@@ -14,6 +14,8 @@ Vector2 EventSystem::mousePos;
 Vector2 EventSystem::prevMousePos;
 Vector2 EventSystem::mouseMotion;
 
+Vector2 EventSystem::mouseWheelOffset;
+
 bool EventSystem::leftMouseButton;
 bool EventSystem::rightMouseButton;
 std::list<int> EventSystem::pressedKeys;
@@ -25,6 +27,10 @@ const Vector2& EventSystem::GetMousePosition()
 const Vector2& EventSystem::GetMouseMotion()
 {
 	return mouseMotion;
+}
+const Vector2& EventSystem::GetMouseWheelOffset()
+{
+	return mouseWheelOffset;
 }
 const std::list<int>& EventSystem::GetPressedKeys()
 {
@@ -137,6 +143,8 @@ void EventSystem::MouseButtonEvent(GLFWwindow* window, int button, int action, i
 }
 void EventSystem::MouseWheelEvent(GLFWwindow* window, double xoffset, double yoffset)
 {
+	mouseWheelOffset.x = xoffset;
+	mouseWheelOffset.y = yoffset;
 	for (auto it = onMouseWheelEvent.begin(); it != onMouseWheelEvent.end(); it++)
 		it->second(window, xoffset, yoffset);
 }

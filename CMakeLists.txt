@@ -12,6 +12,8 @@ add_executable(
         source/main.cpp
 
         source/Initializer.h
+        source/EventSystem.h
+        source/EventSystem.cpp
 
         source/Shaders/Shader.h
         source/Shaders/Shader.cpp
@@ -20,6 +22,10 @@ add_executable(
         source/Components/Component.h
         source/Components/TransformComponent.cpp
         source/Components/TransformComponent.h
+        source/Components/CameraComponent.cpp
+        source/Components/CameraComponent.h
+        source/Components/TextRendererComponent.cpp
+        source/Components/TextRendererComponent.h
 
         source/GameObject/GameObject.cpp
         source/GameObject/GameObject.h

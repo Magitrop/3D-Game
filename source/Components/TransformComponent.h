@@ -21,16 +21,18 @@ protected:
 	Vector3 up = Vector3(0, 1, 0);
 	Vector3 forward = Vector3(0, 0, 1);
 public:
-	 const Vector3& GetPosition() const;
-	 const Vector3& GetRotation() const;
-	 const Vector3& GetScale() const;
-	 const Vector3& GetLocalPosition() const;
-	 const Vector3& GetLocalRotation() const;
-	 const Vector3& GetLocalScale() const;
+	 Vector3 GetPosition() const;
+	 Vector3 GetRotation() const;
+	 Vector3 GetScale() const;
+	 Vector3 GetLocalPosition() const;
+	 Vector3 GetLocalRotation() const;
+	 Vector3 GetLocalScale() const;
 
-	 const Vector3& GetForward() const;
-	 const Vector3& GetRight() const;
-	 const Vector3& GetUp() const;
+	 Vector3 GetForward() const;
+	 Vector3 GetRight() const;
+	 Vector3 GetUp() const;
+
+	 Matrix4x4 GetModelMatrix() const;
 
 	 const Vector3& SetPosition(const Vector3& pos);
 	 const Vector3& SetPosition(float x, float y, float z);

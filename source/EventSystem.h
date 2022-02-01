@@ -23,12 +23,15 @@ private:
 	static Vector2 prevMousePos;
 	static Vector2 mouseMotion;
 
+	static Vector2 mouseWheelOffset;
+
 	static bool leftMouseButton;
 	static bool rightMouseButton;
 	static std::list<int> pressedKeys;
 public:
 	static const Vector2& GetMousePosition();
 	static const Vector2& GetMouseMotion();
+	static const Vector2& GetMouseWheelOffset();
 	static const std::list<int>& GetPressedKeys();
 	static const bool& GetLeftMouseButton();
 	static const bool& GetRightMouseButton();

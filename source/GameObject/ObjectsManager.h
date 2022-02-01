@@ -19,10 +19,26 @@ public:
 		instantiatedObjects.push_back(obj);
 		return obj->AddComponent<T>();
 	}
+	template<class T> static T* Instantiate(const Vector3& position)
+	{
+		static_assert(std::is_base_of<Component, T>::value, "Only GameObject may be instantiated.");
+
+		GameObject* obj = new GameObject();
+		obj->transform->SetPosition(position);
+		instantiatedObjects.push_back(obj);
+		return obj->AddComponent<T>();
+	}
 
 	template<> static GameObject* Instantiate<GameObject>()
 	{
 		GameObject* obj = new GameObject();
+		instantiatedObjects.push_back(obj);
+		return obj;
+	}
+	template<> static GameObject* Instantiate<GameObject>(const Vector3& position)
+	{
+		GameObject* obj = new GameObject();
+		obj->transform->SetPosition(position);
 		instantiatedObjects.push_back(obj);
 		return obj;
 	}

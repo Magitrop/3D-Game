@@ -1,4 +1,14 @@
 #include "Vectors.h"
+#include <string>
+
+const Vector3&& Vectors::zero = Vector3(0, 0, 0);
+const Vector3&& Vectors::one = Vector3(1, 1, 1);
+const Vector3&& Vectors::up = Vector3(0, 1, 0);
+const Vector3&& Vectors::down = Vector3(0, -1, 0);
+const Vector3&& Vectors::right = Vector3(1, 0, 0);
+const Vector3&& Vectors::left = Vector3(-1, 0, 0);
+const Vector3&& Vectors::forward = Vector3(0, 0, 1);
+const Vector3&& Vectors::backward = Vector3(0, 0, -1);
 
 float Vectors::Length(Vector2 a)
 {
@@ -50,14 +60,27 @@ float Vectors::Angle(Vector3 a, Vector3 b)
 	return Dot(a, b) / (Length(a) * Length(b));
 }
 
-//Vector3 Vectors::MultiplyPoint(const Matrix4x4& m, const Vector3& p)
-//{
-//	Vector3 res;
-//	res.x = (m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z) + m[0][3];
-//	res.y = (m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z) + m[1][3];
-//	res.z = (m[2][0] * p.x + m[2][1] * p.y + m[2][2] * p.z) + m[2][3];
-//	return res;
-//}
+std::string Vectors::VectorToString(const Vector2& vec)
+{
+	return std::string("(" + std::to_string(vec.x) + ", " + std::to_string(vec.y) + ")");
+}
+std::string Vectors::VectorToString(const Vector3& vec)
+{
+	return std::string("(" + std::to_string(vec.x) + ", " + std::to_string(vec.y) + ", " + std::to_string(vec.z) + ")");
+}
+std::string Vectors::VectorToString(const Vector4& vec)
+{
+	return std::string("(" + std::to_string(vec.x) + ", " + std::to_string(vec.y) + ", " + std::to_string(vec.z) + ", " + std::to_string(vec.w) + ")");
+}
+
+Vector3 Vectors::MultiplyPoint(const Matrix4x4& m, const Vector3& p)
+{
+	Vector3 res;
+	res.x = (m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z) + m[0][3];
+	res.y = (m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z) + m[1][3];
+	res.z = (m[2][0] * p.x + m[2][1] * p.y + m[2][2] * p.z) + m[2][3];
+	return res;
+}
 
 std::ostream& operator << (std::ostream& stream, const Vector2& vec)
 {
@@ -73,4 +96,68 @@ std::ostream& operator << (std::ostream& stream, const Vector4& vec)
 {
 	stream << "(" << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ")";
 	return stream;
+}
+
+Vector2& operator * (Vector2& vec, int value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	return vec;
+}
+Vector2& operator * (Vector2& vec, float value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	return vec;
+}
+Vector2& operator * (Vector2& vec, double value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	return vec;
+}
+Vector3& operator * (Vector3& vec, int value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	vec.z *= value;
+	return vec;
+}
+Vector3& operator * (Vector3& vec, float value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	vec.z *= value;
+	return vec;
+}
+Vector3& operator * (Vector3& vec, double value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	vec.z *= value;
+	return vec;
+}
+Vector4& operator * (Vector4& vec, int value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	vec.z *= value;
+	vec.w *= value;
+	return vec;
+}
+Vector4& operator * (Vector4& vec, float value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	vec.z *= value;
+	vec.w *= value;
+	return vec;
+}
+Vector4& operator * (Vector4& vec, double value)
+{
+	vec.x *= value;
+	vec.y *= value;
+	vec.z *= value;
+	vec.w *= value;
+	return vec;
 }

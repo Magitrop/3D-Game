@@ -27,6 +27,8 @@ protected:
 	std::vector<int> forwardMotionOverrides;	// forward or backward
 
 	Vector3 newRotation = Vector3();
+	Vector3 targetPoint = Vector3();
+	Vector2 movementDirection = Vector2();
 
 	float fieldOfView = 45.f;
 	float nearClipPlane = 0.01f;
@@ -34,27 +36,12 @@ protected:
 
 	//bool freeCamera = false;
 
-	void RecalculateProjectionMatrix()
-	{
-		projectionMatrix =
-			glm::perspective(
-				glm::radians(fieldOfView),
-				Initializer.GetAspectRatio(),
-				nearClipPlane,
-				farClipPlane);
-	}
-	void RecalculateViewMatrix()
-	{
-		viewMatrix =
-			glm::lookAt(
-				gameObject->transform->GetPosition(),
-				Vectors::zero/*cameraPos + camera->forward*/,
-				Vectors::up
-			);
-	}
+	void RecalculateProjectionMatrix();
+	void RecalculateViewMatrix();
 public:
-	float cameraRotationSpeed = 0.001f;
-	float cameraMovementSpeed = 0.05f;
+	float rotationSpeed = 0.001f;
+	float movementSpeed = 0.05f;
+	float zoomIntensity = 0.2f;
 	Vector2 cameraRestraints = Vector2(glm::radians(0.f), glm::radians(80.f));
 
 	void OverrideMotion(int key, bool addKey)
@@ -121,27 +108,15 @@ public:
 			return 1;
 	}
 
-	void SetFieldOfView(float fov)
-	{
-		fieldOfView = fov;
-		RecalculateProjectionMatrix();
-	}
-	void SetClippingPlanes(float near, float far)
-	{
-		nearClipPlane = near;
-		farClipPlane = far;
-		RecalculateProjectionMatrix();
-	}
-	const glm::Matrix4x4& GetProjectionMatrix() const
-	{
-		return projectionMatrix;
-	}
-	const glm::Matrix4x4& GetViewMatrix() const
-	{
-		return viewMatrix;
-	}
+	void SetFieldOfView(float fov);
+	void SetClippingPlanes(float near, float far);
+	const glm::Matrix4x4& GetProjectionMatrix() const;
+	const glm::Matrix4x4& GetViewMatrix() const;
 
 	virtual void OnCreate() override;
+	virtual void OnUpdate() override;
 	virtual void OnMouseMove(GLFWwindow* window, double x, double y, Vector2 motion) override;
+	virtual void OnMouseWheel(GLFWwindow* window, double xoffset, double yoffset) override;
 	virtual void OnWindowResize(GLFWwindow* window, int width, int height) override;
+	virtual void OnKeyboardButton(GLFWwindow* window, int key, int scancode, int action, int mode) override;
 };

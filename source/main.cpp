@@ -127,8 +127,7 @@ unsigned int VAO, VBO;
 
 int main()
 {
-	auto camera = ObjectsManager::Instantiate<CameraComponent>();
-	camera->gameObject->transform->SetPosition(0, 0, 3);
+	auto camera = ObjectsManager::Instantiate<CameraComponent>(Vector3(0, 0, 3));
 
 	if (!Initializer.Init())
 		return -1;
@@ -275,18 +274,20 @@ int main()
 	auto previousTime = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
+		EventSystem::Update();
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(trianglesbuffer), triangles, GL_STATIC_DRAW);
 		//glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(Vector3), &vertexNormals[0], GL_STATIC_DRAW);
 
-		camera->gameObject->transform->Translate(
+		/*camera->gameObject->transform->Translate(
 			glm::normalize(camera->gameObject->transform->GetForward()) * (0.05f * camera->CheckForwardMotion()) +
-			glm::normalize(camera->gameObject->transform->GetRight()) * (0.05f * camera->CheckSideMotion()));
+			glm::normalize(camera->gameObject->transform->GetRight()) * (0.05f * camera->CheckSideMotion()));*/
 
 		// Матрица модели : единичная матрица (Модель находится в начале координат)
-		glm::mat4 Model = glm::rotate(glm::mat4(1.0f), glm::radians(45.f), Vectors::up);  // Индивидуально для каждой модели
+		glm::mat4 Model = glm::mat4(1.0f);  // Индивидуально для каждой модели
 
 		// Итоговая матрица ModelViewProjection, которая является результатом перемножения наших трех матриц
 		glm::mat4 MVP = camera->GetProjectionMatrix() * camera->GetViewMatrix() * Model; // Помните, что умножение матрицы производится в обратном порядке
@@ -295,8 +296,11 @@ int main()
 		uint64_t deltaTime = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - previousTime).count();
 		previousTime = currentTime;
 
-		RenderText(shader, "This is sample text", 0.0f, 1.0f, 0.01f, glm::vec3(1.0f, 1.0f, 1.0f));
-		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &MVP[0][0]);
+		RenderText(
+			shader, 
+			Vectors::VectorToString(camera->gameObject->transform->GetLocalRotation()), 
+			0.0f, 0.0f, 1.f, Vector3(1.0f, 1.0f, 1.0f));
+		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
 
 		glUseProgram(programID);
 		// Передать наши трансформации в текущий шейдер

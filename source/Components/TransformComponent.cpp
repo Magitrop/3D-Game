@@ -1,19 +1,32 @@
 #include <math.h>
+#include <GLFW\glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "TransformComponent.h"
 
-const Vector3& TransformComponent::GetPosition() const { return position; }
-const Vector3& TransformComponent::GetRotation() const { return rotation; }
-const Vector3& TransformComponent::GetScale() const { return scale; }
+Vector3 TransformComponent::GetPosition() const { return position; }
+Vector3 TransformComponent::GetRotation() const { return rotation; }
+Vector3 TransformComponent::GetScale() const { return scale; }
 
-const Vector3& TransformComponent::GetLocalPosition() const { return localPosition; }
-const Vector3& TransformComponent::GetLocalRotation() const { return localRotation; }
-const Vector3& TransformComponent::GetLocalScale() const { return localScale; }
+Vector3 TransformComponent::GetLocalPosition() const { return localPosition; }
+Vector3 TransformComponent::GetLocalRotation() const { return localRotation; }
+Vector3 TransformComponent::GetLocalScale() const { return localScale; }
 
-const Vector3& TransformComponent::GetForward() const { return forward; }
-const Vector3& TransformComponent::GetRight() const { return right; }
-const Vector3& TransformComponent::GetUp() const { return up; }
+Vector3 TransformComponent::GetForward() const { return forward; }
+Vector3 TransformComponent::GetRight() const { return right; }
+Vector3 TransformComponent::GetUp() const { return up; }
+
+Matrix4x4 TransformComponent::GetModelMatrix() const
+{
+	Matrix4x4 res(1.f);
+	res = glm::scale(res, GetScale());
+	res = glm::rotate(res, glm::radians(GetLocalRotation().z), GetForward());
+	res = glm::rotate(res, glm::radians(GetLocalRotation().y), GetRight());
+	res = glm::rotate(res, glm::radians(GetLocalRotation().x), GetRight());
+	res = glm::translate(res, GetPosition());
+	return res;
+}
 
 const Vector3& TransformComponent::SetPosition(const Vector3& vec) { return position = vec; }
 const Vector3& TransformComponent::SetPosition(float x, float y, float z)
