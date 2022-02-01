@@ -1,7 +1,11 @@
 ﻿#define _USE_MATH_DEFINES
 #include <cmath>
 
+#ifdef __gl_h_
+#undef __gl_h_
+#endif // __gl_h_
 #include <glad/glad.h>
+
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -15,29 +19,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Initializer.h"
+#include "EventSystem.h"
 #include "GameObject/ObjectsManager.h"
 #include "Math/Vectors.h"
 #include "Shaders/Shader.h"
+#include "Components/TextRendererComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
 
 using glm::Matrix4x4;
-
-//void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
-//{
-//	if (key == GLFW_KEY_W || 
-//		key == GLFW_KEY_A || 
-//		key == GLFW_KEY_S || 
-//		key == GLFW_KEY_D)
-//	{
-//		if (action == GLFW_PRESS)
-//			camera->OverrideMotion(key, true);
-//		else if (action == GLFW_RELEASE)
-//			camera->OverrideMotion(key, false);
-//	}
-//	else if (key == GLFW_KEY_ESCAPE)
-//		glfwSetWindowShouldClose(window, true);
-//}
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
 
@@ -67,7 +57,7 @@ GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
 	}
 
 	GLint Result = GL_FALSE;
-	int InfoLogLength;
+	GLint InfoLogLength;
 
 	// Компилируем Вершинный шейдер
 	printf("compiling shader: %s\n", vertex_file_path);
@@ -298,8 +288,8 @@ int main()
 
 		RenderText(
 			shader, 
-			Vectors::VectorToString(camera->gameObject->transform->GetLocalRotation()), 
-			0.0f, 0.0f, 1.f, Vector3(1.0f, 1.0f, 1.0f));
+			Vectors::VectorToString(camera->gameObject->transform->GetRotation()), 
+			0.0f, 10.0f, 0.75f, Vector3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
 
 		glUseProgram(programID);

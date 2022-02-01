@@ -1,7 +1,12 @@
 #pragma once
 
+#ifdef __gl_h_
+#undef __gl_h_
+#endif // __gl_h_
 #include <glad/glad.h>
+
 #include "EventSystem.h"
+#include "Components/CameraComponent.h"
 
 std::map<long long, std::function<void()>> EventSystem::onUpdate;
 std::map<long long, std::function<void(GLFWwindow*, double, double, Vector2)>> EventSystem::onMouseMoveEvent;
@@ -18,7 +23,9 @@ Vector2 EventSystem::mouseWheelOffset;
 
 bool EventSystem::leftMouseButton;
 bool EventSystem::rightMouseButton;
-std::list<int> EventSystem::pressedKeys;
+bool EventSystem::keys[GLFW_KEY_LAST];
+
+//CameraComponent* EventSystem::mainCamera;
 
 const Vector2& EventSystem::GetMousePosition()
 {
@@ -32,9 +39,9 @@ const Vector2& EventSystem::GetMouseWheelOffset()
 {
 	return mouseWheelOffset;
 }
-const std::list<int>& EventSystem::GetPressedKeys()
+const bool& EventSystem::GetKey(int keyCode)
 {
-	return pressedKeys;
+	return keys[keyCode];
 }
 const bool& EventSystem::GetLeftMouseButton()
 {
@@ -44,6 +51,11 @@ const bool& EventSystem::GetRightMouseButton()
 {
 	return rightMouseButton;
 }
+
+//CameraComponent* const EventSystem::GetMainCamera()
+//{
+//	return mainCamera;
+//}
 
 // Update event
 void EventSystem::AttachUpdateEventListener(long long listenerID, std::function<void()> listener)
@@ -150,10 +162,13 @@ void EventSystem::MouseWheelEvent(GLFWwindow* window, double xoffset, double yof
 }
 void EventSystem::KeyboardEvent(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	if (key < 0)
+		return;
+
 	if (action == GLFW_PRESS)
-		pressedKeys.push_back(key);
+		keys[key] = true;
 	else if (action == GLFW_RELEASE)
-		pressedKeys.erase(std::find(pressedKeys.begin(), pressedKeys.end(), key));
+		keys[key] = false;
 
 	for (auto it = onKeyboardEvent.begin(); it != onKeyboardEvent.end(); it++)
 		it->second(window, key, scancode, action, mode);

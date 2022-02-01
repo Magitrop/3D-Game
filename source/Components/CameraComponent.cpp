@@ -1,4 +1,11 @@
+#pragma once
 #include "CameraComponent.h"
+#include "../Initializer.h"
+
+#include "TransformComponent.h"
+#include "../GameObject/ObjectsManager.h"
+#include "../EventSystem.h"
+
 #include <glm/gtx/projection.hpp>
 
 void CameraComponent::RecalculateProjectionMatrix()
@@ -43,7 +50,6 @@ const glm::Matrix4x4& CameraComponent::GetViewMatrix() const
 void CameraComponent::OnCreate()
 {
 	ATTACH_MOUSE_MOVE
-	ATTACH_KEYBOARD
 	ATTACH_UPDATE
 	ATTACH_WINDOW_RESIZE
 	ATTACH_MOUSE_WHEEL
@@ -65,18 +71,18 @@ void CameraComponent::OnMouseMove(GLFWwindow* window, double x, double y, Vector
 		auto cam = targetPoint + Vectors::MultiplyPoint(
 			glm::rotate(
 				Matrix4x4(1),
-				gameObject->transform->GetLocalRotation().x - newRotation.x,
+				gameObject->transform->GetRotation().x - newRotation.x,
 				gameObject->transform->GetRight()),
 			gameObject->transform->GetPosition() - targetPoint);
 		cam = targetPoint + Vectors::MultiplyPoint(
 			glm::rotate(
 				Matrix4x4(1),
-				newRotation.y - gameObject->transform->GetLocalRotation().y,
+				newRotation.y - gameObject->transform->GetRotation().y,
 				Vectors::up),
 			cam - targetPoint);
 
 		// applying rotation
-		gameObject->transform->SetLocalRotation(newRotation.x, newRotation.y, 0);
+		gameObject->transform->SetRotation(newRotation.x, newRotation.y, 0);
 		gameObject->transform->SetPosition(cam);
 		gameObject->transform->SetForward(targetPoint - cam);
 
@@ -100,6 +106,20 @@ void CameraComponent::OnMouseWheel(GLFWwindow* window, double xoffset, double yo
 
 void CameraComponent::OnUpdate()
 {
+	if (EventSystem::GetKey(GLFW_KEY_W))
+		movementDirection.y = 1;
+	else if (EventSystem::GetKey(GLFW_KEY_S))
+		movementDirection.y = -1;
+	else 
+		movementDirection.y = 0;
+
+	if (EventSystem::GetKey(GLFW_KEY_D))
+		movementDirection.x = -1;
+	else if (EventSystem::GetKey(GLFW_KEY_A))
+		movementDirection.x = 1;
+	else
+		movementDirection.x = 0;
+
 	targetPoint += 
 		glm::normalize(glm::proj(
 			gameObject->transform->GetForward(),
@@ -111,46 +131,4 @@ void CameraComponent::OnUpdate()
 			glm::cross(Vectors::up, gameObject->transform->GetRight()))) * movementDirection.y * movementSpeed +
 		gameObject->transform->GetRight() * movementDirection.x * movementSpeed);
 	RecalculateViewMatrix();
-}
-
-void CameraComponent::OnKeyboardButton(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
-	if (key == GLFW_KEY_W)
-	{
-		if (action == GLFW_PRESS)
-			movementDirection.y = 1;
-		else if (action == GLFW_RELEASE)
-			movementDirection.y = 0;
-	}
-	else if (key == GLFW_KEY_S)
-	{
-		if (action == GLFW_PRESS)
-			movementDirection.y = -1;
-		else if (action == GLFW_RELEASE)
-			movementDirection.y = 0;
-	}
-	else if (key == GLFW_KEY_D)
-	{
-		if (action == GLFW_PRESS)
-			movementDirection.x = -1;
-		else if (action == GLFW_RELEASE)
-			movementDirection.x = 0;
-	}
-	else if (key == GLFW_KEY_A)
-	{
-		if (action == GLFW_PRESS)
-			movementDirection.x = 1;
-		else if (action == GLFW_RELEASE)
-			movementDirection.x = 0;
-	}
-	/*if (key == GLFW_KEY_W ||
-		key == GLFW_KEY_A ||
-		key == GLFW_KEY_S ||
-		key == GLFW_KEY_D)
-	{
-		if (action == GLFW_PRESS)
-			OverrideMotion(key, true);
-		else if (action == GLFW_RELEASE)
-			OverrideMotion(key, false);
-	}*/
 }

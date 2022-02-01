@@ -1,4 +1,11 @@
+#pragma once
 #include "TextRendererComponent.h"
+
+#ifdef __gl_h_
+#undef __gl_h_
+#endif // __gl_h_
+#include <glad/glad.h>
+
 std::map<char, TextHandler::Character> TextHandler::characters;
 
 int TextHandler::InitializeCharacters()
@@ -11,7 +18,7 @@ int TextHandler::InitializeCharacters()
 	}
 
 	FT_Face face;
-	if (FT_New_Face(ft, "../fonts/montserrat.ttf", 0, &face))
+	if (FT_New_Face(ft, "../fonts/consolas.ttf", 0, &face))
 	{
 		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
 		return -1;

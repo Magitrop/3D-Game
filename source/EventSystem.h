@@ -27,14 +27,17 @@ private:
 
 	static bool leftMouseButton;
 	static bool rightMouseButton;
-	static std::list<int> pressedKeys;
+	static bool keys[GLFW_KEY_LAST];
+
+	//static CameraComponent* mainCamera;
 public:
 	static const Vector2& GetMousePosition();
 	static const Vector2& GetMouseMotion();
 	static const Vector2& GetMouseWheelOffset();
-	static const std::list<int>& GetPressedKeys();
+	static const bool& GetKey(int keyCode);
 	static const bool& GetLeftMouseButton();
 	static const bool& GetRightMouseButton();
+	//static CameraComponent* const GetMainCamera();
 
 	// Update event
 	static void AttachUpdateEventListener(long long listenerID, std::function<void()> listener);

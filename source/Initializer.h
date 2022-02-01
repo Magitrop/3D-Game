@@ -1,5 +1,4 @@
 #pragma once
-#include <glad/glad.h>
 
 #include <iostream>
 #include <map>
@@ -7,9 +6,6 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
-
-#include "Components/TextRendererComponent.h"
-#include "EventSystem.h"
 
 #define Initializer InitializationHandler::Instance()
 
@@ -30,67 +26,9 @@ public:
 	GLFWwindow* window;
 	const Vector2 windowSize = Vector2(1600, 800);
 
-	static InitializationHandler& Instance()
-	{
-		static InitializationHandler object; 
-		return object;
-	}
+	static InitializationHandler& Instance();
 
-	constexpr float GetAspectRatio()
-	{
-		return windowSize.x / windowSize.y;
-	}
-
-	bool Init()
-	{
-		if (!glfwInit())
-		{
-			cout << "glfwInit failed" << endl;
-			return false;
-		}
-		
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-		window = glfwCreateWindow(windowSize.x, windowSize.y, "Game", nullptr, nullptr);
-		if (!window)
-		{
-			glfwTerminate();
-			cout << "glfwCreateWindow failed" << endl;
-			return false;
-		}
-
-		glfwMakeContextCurrent(window);
-
-		if (!gladLoadGL())
-		{
-			cout << "gladLoadGL failed" << endl;
-			return false;
-		}
-
-		cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
-		cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
-
-		if (!TextHandler::InitializeCharacters())
-			return false;
-
-		// glad: load all OpenGL function pointers×
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		{
-			std::cout << "Failed to initialize GLAD" << std::endl;
-			return -1;
-		}
-
-		glfwSetKeyCallback(window, EventSystem::KeyboardEvent);
-		glfwSetCursorPosCallback(window, EventSystem::MouseMoveEvent);
-		glfwSetMouseButtonCallback(window, EventSystem::MouseButtonEvent);
-		glfwSetScrollCallback(window, EventSystem::MouseWheelEvent);
-		glfwSetFramebufferSizeCallback(window, EventSystem::WindowResizeEvent);
-
-		return true;
-	}
-
-	void Quit()	{ glfwTerminate(); }
+	float GetAspectRatio();
+	bool Init();
+	void Quit();
 };
