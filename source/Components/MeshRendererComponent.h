@@ -20,7 +20,11 @@ class MeshRendererComponent : public Component
 {
 	COMPONENT(MeshRendererComponent)
 protected:
-	GLuint shaderProgramID;
+	
+
+	void RecalculateFaceNormals();
+	void RecalculateVertexNormals();
+public:
 	GLuint vertexArrayID;
 	GLuint vertexBuffer;
 	GLuint trianglesBuffer;
@@ -34,13 +38,13 @@ protected:
 
 	std::vector<Vector3> faceNormals;
 	std::vector<Vector3> vertexNormals;
+	Shader* currentShader = nullptr;
+	Vector3 light = Vector3(0, 1, 0);
 
-	void RecalculateFaceNormals();
-	void RecalculateVertexNormals();
-public:
 	virtual void OnCreate() override;
 
 	void SetVertices(const std::vector<Vector3>& newVertices);
 	void SetTriangles(const std::vector<Vector3>& newTriangles);
+	void SetShader(Shader* newShader);
 	void Render();
 };

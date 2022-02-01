@@ -1,11 +1,14 @@
 #pragma once
 
-#include "Shader.h"
-
 #ifdef __gl_h_
 #undef __gl_h_
 #endif // __gl_h_
 #include <glad/glad.h>
+
+#include "Shader.h"
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {

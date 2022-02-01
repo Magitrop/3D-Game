@@ -1,10 +1,11 @@
 #pragma once
-#include "TextRendererComponent.h"
 
 #ifdef __gl_h_
 #undef __gl_h_
 #endif // __gl_h_
 #include <glad/glad.h>
+
+#include "TextRendererComponent.h"
 
 std::map<char, TextHandler::Character> TextHandler::characters;
 

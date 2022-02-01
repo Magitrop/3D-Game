@@ -1,10 +1,11 @@
 #pragma once
-#include "MeshRendererComponent.h"
 
 #ifdef __gl_h_
 #undef __gl_h_
 #endif // __gl_h_
 #include <glad/glad.h>
+
+#include "MeshRendererComponent.h"
 
 void MeshRendererComponent::RecalculateFaceNormals()
 {
@@ -82,7 +83,7 @@ void MeshRendererComponent::SetVertices(const std::vector<Vector3>& newVertices)
 		glDeleteBuffers(1, &vertexBuffer);
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, verticesCount * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer
 	(
@@ -147,25 +148,30 @@ void MeshRendererComponent::SetTriangles(const std::vector<Vector3>& newTriangle
 	glBindVertexArray(0);
 }
 
+void MeshRendererComponent::SetShader(Shader* newShader)
+{
+	currentShader = newShader;
+}
+
 void MeshRendererComponent::Render()
 {
-	glUseProgram(shaderProgramID);
+	currentShader->Use();
 
 	// attach MVP matrix
-	/*glUniformMatrix4fv(
-		glGetUniformLocation(shaderProgramID, "MVP"),
+	glUniformMatrix4fv(
+		glGetUniformLocation(currentShader->ID, "MVP"),
 		1,
 		GL_FALSE,
-		&gameObject->transform->GetMVPMatrix()[0][0]);*/
-		// attach light direction vector
-		/*glUniform3fv(
-			glGetUniformLocation(shaderProgramID, "lightDirection"),
-			1,
-			&light[0]);*/
+		&gameObject->transform->GetMVPMatrix()[0][0]);
+	// attach light direction vector
+	glUniform3fv(
+		glGetUniformLocation(currentShader->ID, "lightDirection"),
+		1,
+		&light[0]);
 
 	glBindVertexArray(vertexArrayID);
 	glDrawElements(GL_TRIANGLES, trianglesCount * 3, GL_UNSIGNED_INT, triangles);
-
 	glBindVertexArray(0);
+
 	glUseProgram(0);
 }

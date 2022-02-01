@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "GameObject/GameObject.h"
+#include "Components/CameraComponent.h"
 
 class EventSystem final
 {
@@ -29,7 +30,7 @@ private:
 	static bool rightMouseButton;
 	static bool keys[GLFW_KEY_LAST];
 
-	//static CameraComponent* mainCamera;
+	static CameraComponent* mainCamera;
 public:
 	static const Vector2& GetMousePosition();
 	static const Vector2& GetMouseMotion();
@@ -37,7 +38,8 @@ public:
 	static const bool& GetKey(int keyCode);
 	static const bool& GetLeftMouseButton();
 	static const bool& GetRightMouseButton();
-	//static CameraComponent* const GetMainCamera();
+	static void SetAsMainCamera(CameraComponent* cam);
+	static CameraComponent* const GetMainCamera();
 
 	// Update event
 	static void AttachUpdateEventListener(long long listenerID, std::function<void()> listener);

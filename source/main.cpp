@@ -23,6 +23,7 @@
 #include "GameObject/ObjectsManager.h"
 #include "Math/Vectors.h"
 #include "Shaders/Shader.h"
+#include "Components/MeshRendererComponent.h"
 #include "Components/TextRendererComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
@@ -117,20 +118,17 @@ unsigned int VAO, VBO;
 
 int main()
 {
-	auto camera = ObjectsManager::Instantiate<CameraComponent>(Vector3(0, 0, 3));
-
 	if (!Initializer.Init())
 		return -1;
 
+	auto camera = ObjectsManager::Instantiate<CameraComponent>(Vector3(0, 0, 3));
+	EventSystem::SetAsMainCamera(camera);
+
 	// compile and setup the shader
-	// ----------------------------
 	Shader shader("..\\source\\TextVertexShader.vertexshader", "..\\source\\TextFragmentShader.fragmentshader");
-	glm::mat4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
-	//shader.Use();
-	//glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
+	Shader shader1("..\\source\\SimpleVertexShader.vertexshader", "..\\source\\SimpleFragmentShader.fragmentshader");
 
 	// configure VAO/VBO for texture quads
-	// -----------------------------------
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glBindVertexArray(VAO);
@@ -141,114 +139,43 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	GLuint programID = LoadShaders(
-		"..\\source\\SimpleVertexShader.vertexshader",
-		"..\\source\\SimpleFragmentShader.fragmentshader");
+	MeshRendererComponent* mesh1 = ObjectsManager::Instantiate<MeshRendererComponent>();
+	mesh1->SetVertices(
+		{
+			Vector3(0.0f, 0.0f, 0.0f),
+			Vector3(0.0f, 1.0f, 0.0f),
+			Vector3(1.0f, 1.0f, 0.0f),
+			Vector3(1.0f, 0.0f, 0.0f),
 
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
+			Vector3(0.0f, 0.0f, 1.0f),
+			Vector3(0.0f, 1.0f, 1.0f),
+			Vector3(1.0f, 1.0f, 1.0f),
+			Vector3(1.0f, 0.0f, 1.0f)
+		});
+	mesh1->SetTriangles(
+		{
+			Vector3(0, 1, 2),
+			Vector3(2, 3, 0),
 
-	const GLfloat vertices[] =
-	{
-		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
+			Vector3(3, 2, 6),
+			Vector3(6, 7, 3),
 
-		0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-	};
-	const GLuint triangles[] =
-	{
-		0, 1, 2,
-		2, 3, 0,
+			Vector3(7, 6, 5),
+			Vector3(5, 4, 7),
 
-		3, 2, 6,
-		6, 7, 3,
+			Vector3(4, 5, 1),
+			Vector3(1, 0, 4),
 
-		7, 6, 5,
-		5, 4, 7,
+			Vector3(1, 5, 6),
+			Vector3(6, 2, 1),
 
-		4, 5, 1,
-		1, 0, 4,
+			Vector3(4, 0, 3),
+			Vector3(3, 7, 4)
+		});
+	mesh1->SetShader(&shader1);
+	mesh1->gameObject->transform->Rotate(Vectors::up, 45.f);
 
-		1, 5, 6,
-		6, 2, 1,
-
-		4, 0, 3,
-		3, 7, 4,
-	};
-	std::vector<Vector3> faceNormals;
-	std::vector<Vector3> vertexNormals;
-	for (int i = 0; i < 12; i++)
-	{
-		Vector3 a = Vector3(vertices[3 * triangles[3 * i]], vertices[3 * triangles[3 * i] + 1], vertices[3 * triangles[3 * i] + 2]);
-		//cout << "a: " << a.x << " " << a.y << " " << a.z << endl;
-		Vector3 b = Vector3(vertices[3 * triangles[3 * i + 1]], vertices[3 * triangles[3 * i + 1] + 1], vertices[3 * triangles[3 * i + 1] + 2]);
-		//cout << "b: " << b.x << " " << b.y << " " << b.z << endl;
-		Vector3 c = Vector3(vertices[3 * triangles[3 * i + 2]], vertices[3 * triangles[3 * i + 2] + 1], vertices[3 * triangles[3 * i + 2] + 2]);
-		//cout << "c: " << c.x << " " << c.y << " " << c.z << endl;
-		Vector3 n = glm::normalize(glm::cross(b - a, c - a));
-		faceNormals.push_back(n);
-		//cout << "normal: " << n.x << " " << n.y << " " << n.z << endl;
-	}
-	for (int i = 0; i < 8; i++)
-	{
-		std::vector<int> trianglesUsingThisVertex;
-		for (int j = 0; j < 3 * 12; j += 3)
-			for (int k = 0; k < 3; k++)
-				// if triangle contains this vertex
-				if (i == triangles[j + k])
-				{
-					trianglesUsingThisVertex.push_back(j / 3);
-					break;
-				}
-		Vector3 n = Vector3();
-		for (int j = 0; j < trianglesUsingThisVertex.size(); j++)
-			n += faceNormals[trianglesUsingThisVertex[j]];
-		vertexNormals.push_back(glm::normalize(n));
-	}
-
-	GLuint vertexbuffer;
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(
-		0,                  // Атрибут 0. Подробнее об этом будет рассказано в части, посвященной шейдерам.
-		3,                  // Размер
-		GL_FLOAT,           // Тип
-		GL_FALSE,           // Указывает, что значения не нормализованы
-		0,                  // Шаг
-		(void*)0            // Смещение массива в буфере
-	);
-
-	GLuint trianglesbuffer;
-	glGenBuffers(1, &trianglesbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, trianglesbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(trianglesbuffer), triangles, GL_STATIC_DRAW);
-
-	GLuint normalbuffer;
-	glGenBuffers(1, &normalbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(Vector3), &vertexNormals[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(
-		2,                                // attribute
-		3,                                // size
-		GL_FLOAT,                         // type
-		GL_FALSE,                         // normalized?
-		0,                                // stride
-		(void*)0                          // array buffer offset
-	);
-
-	// Получить хэндл переменной в шейдере
-	// Только один раз во время инициализации.
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	GLuint LightDirectionID = glGetUniformLocation(programID, "lightDirection");
+	glm::mat4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
 
 	//glEnable(GL_CULL_FACE);
 	//glFrontFace(GL_CCW);
@@ -257,24 +184,15 @@ int main()
 	//glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_ALWAYS);
 
-	Vector3 light(0, 1, 0);
-
 	// render loop
 	// -----------
 	auto previousTime = std::chrono::high_resolution_clock::now();
+
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
 		EventSystem::Update();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(trianglesbuffer), triangles, GL_STATIC_DRAW);
-		//glBufferData(GL_ARRAY_BUFFER, vertexNormals.size() * sizeof(Vector3), &vertexNormals[0], GL_STATIC_DRAW);
-
-		/*camera->gameObject->transform->Translate(
-			glm::normalize(camera->gameObject->transform->GetForward()) * (0.05f * camera->CheckForwardMotion()) +
-			glm::normalize(camera->gameObject->transform->GetRight()) * (0.05f * camera->CheckSideMotion()));*/
 
 		// Матрица модели : единичная матрица (Модель находится в начале координат)
 		glm::mat4 Model = glm::mat4(1.0f);  // Индивидуально для каждой модели
@@ -292,19 +210,11 @@ int main()
 			0.0f, 10.0f, 0.75f, Vector3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
 
-		glUseProgram(programID);
-		// Передать наши трансформации в текущий шейдер
-		// Это делается в основном цикле, поскольку каждая модель будет иметь другую MVP-матрицу (как минимум часть M)
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniform3fv(LightDirectionID, 1, &light[0]);
-
-		glBindVertexArray(VertexArrayID);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, triangles);
+		mesh1->Render();
 
 		for (long long i = 0; i < 1999999; ++i);
 
 		glfwSwapBuffers(Initializer.window);
-
 		glfwPollEvents();
 	}
 

@@ -13,5 +13,6 @@ void main()
 	gl_Position = MVP * vec4(vertexPosition, 1);
 
 	float cosTheta = clamp(dot(normal, -lightDirection), 0, 1);
-	vertexColor = vec4(1, 1, 1, 1);// * cosTheta;
+	vertexColor = vec4(1, 1, 1, 1) * cosTheta;
+	vertexColor.a = 1;
 }

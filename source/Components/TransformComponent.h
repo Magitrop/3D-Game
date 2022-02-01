@@ -27,7 +27,7 @@ public:
 	 Vector3 GetUp() const;
 
 	 Matrix4x4 GetModelMatrix() const;
-	 const Matrix4x4& GetMVPMatrix(const Matrix4x4& projection, const Matrix4x4& view);
+	 const Matrix4x4& GetMVPMatrix();
 
 	 const Vector3& SetPosition(const Vector3& pos);
 	 const Vector3& SetPosition(float x, float y, float z);

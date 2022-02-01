@@ -6,7 +6,6 @@
 #include <glad/glad.h>
 
 #include "EventSystem.h"
-#include "Components/CameraComponent.h"
 
 std::map<long long, std::function<void()>> EventSystem::onUpdate;
 std::map<long long, std::function<void(GLFWwindow*, double, double, Vector2)>> EventSystem::onMouseMoveEvent;
@@ -25,7 +24,7 @@ bool EventSystem::leftMouseButton;
 bool EventSystem::rightMouseButton;
 bool EventSystem::keys[GLFW_KEY_LAST];
 
-//CameraComponent* EventSystem::mainCamera;
+CameraComponent* EventSystem::mainCamera;
 
 const Vector2& EventSystem::GetMousePosition()
 {
@@ -52,10 +51,15 @@ const bool& EventSystem::GetRightMouseButton()
 	return rightMouseButton;
 }
 
-//CameraComponent* const EventSystem::GetMainCamera()
-//{
-//	return mainCamera;
-//}
+void EventSystem::SetAsMainCamera(CameraComponent* cam)
+{
+	mainCamera = cam;
+}
+
+CameraComponent* const EventSystem::GetMainCamera()
+{
+	return mainCamera;
+}
 
 // Update event
 void EventSystem::AttachUpdateEventListener(long long listenerID, std::function<void()> listener)

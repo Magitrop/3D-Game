@@ -20,14 +20,17 @@ Matrix4x4 TransformComponent::GetModelMatrix() const
 	Matrix4x4 res(1.f);
 	res = glm::scale(res, GetScale());
 	res = glm::rotate(res, glm::radians(GetRotation().z), GetForward());
-	res = glm::rotate(res, glm::radians(GetRotation().y), GetRight());
+	res = glm::rotate(res, glm::radians(GetRotation().y), GetUp());
 	res = glm::rotate(res, glm::radians(GetRotation().x), GetRight());
 	res = glm::translate(res, GetPosition());
 	return res;
 }
-const Matrix4x4& TransformComponent::GetMVPMatrix(const Matrix4x4& projection, const Matrix4x4& view)
+const Matrix4x4& TransformComponent::GetMVPMatrix()
 {
-	MVP = projection * view * GetModelMatrix();
+	MVP = 
+		EventSystem::GetMainCamera()->GetProjectionMatrix() *
+		EventSystem::GetMainCamera()->GetViewMatrix() *
+		GetModelMatrix();
 	return MVP;
 }
 
@@ -91,6 +94,7 @@ const Vector3& TransformComponent::Rotate(const Vector3& axis, float angle)
 	rotation.x += angle * ((axis.x > 0) - (axis.x < 0));
 	rotation.y += angle * ((axis.y > 0) - (axis.y < 0));
 	rotation.z += angle * ((axis.z > 0) - (axis.z < 0));
+	std::cout << rotation << std::endl;
 	return rotation;
 }
 const Vector3& TransformComponent::Scale(const Vector3& sc)
