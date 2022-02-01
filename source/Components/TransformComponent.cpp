@@ -1,6 +1,6 @@
 #pragma once
 #include "TransformComponent.h"
-#include "../EventSystem.h"
+#include "../Controllers/EventSystem.h"
 
 #include <math.h>
 #include <GLFW\glfw3.h>
@@ -19,9 +19,9 @@ Matrix4x4 TransformComponent::GetModelMatrix() const
 {
 	Matrix4x4 res(1.f);
 	res = glm::scale(res, GetScale());
-	res = glm::rotate(res, glm::radians(GetRotation().z), GetForward());
-	res = glm::rotate(res, glm::radians(GetRotation().y), GetUp());
-	res = glm::rotate(res, glm::radians(GetRotation().x), GetRight());
+	res = glm::rotate(res, glm::radians(GetRotation().z), Vectors::forward/*GetForward()*/);
+	res = glm::rotate(res, glm::radians(GetRotation().y), Vectors::up/*GetUp()*/);
+	res = glm::rotate(res, glm::radians(GetRotation().x), Vectors::right/*GetRight()*/);
 	res = glm::translate(res, GetPosition());
 	return res;
 }
@@ -99,5 +99,5 @@ const Vector3& TransformComponent::Rotate(const Vector3& axis, float angle)
 }
 const Vector3& TransformComponent::Scale(const Vector3& sc)
 {
-	return position += sc;
+	return scale += sc;
 }

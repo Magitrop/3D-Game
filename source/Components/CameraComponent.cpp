@@ -1,10 +1,10 @@
 #pragma once
 #include "CameraComponent.h"
-#include "../Initializer.h"
+#include "../Controllers/Initializer.h"
 
 #include "TransformComponent.h"
 #include "../GameObject/ObjectsManager.h"
-#include "../EventSystem.h"
+#include "../Controllers/EventSystem.h"
 
 #include <glm/gtx/projection.hpp>
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Initializer.h"
+#include "../Controllers/Initializer.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -13,18 +13,13 @@
 
 #include "../GameObject/ObjectsManager.h"
 #include "TransformComponent.h"
-#include "../EventSystem.h"
+#include "../Controllers/EventSystem.h"
 #include "../Shaders/Shader.h"
 
 class MeshRendererComponent : public Component
 {
 	COMPONENT(MeshRendererComponent)
 protected:
-	
-
-	void RecalculateFaceNormals();
-	void RecalculateVertexNormals();
-public:
 	GLuint vertexArrayID;
 	GLuint vertexBuffer;
 	GLuint trianglesBuffer;
@@ -39,12 +34,17 @@ public:
 	std::vector<Vector3> faceNormals;
 	std::vector<Vector3> vertexNormals;
 	Shader* currentShader = nullptr;
-	Vector3 light = Vector3(0, 1, 0);
+	
+	Vector3 light = Vector3(1, -1, 1);
 
+	void RecalculateFaceNormals();
+	void RecalculateVertexNormals();
+public:
 	virtual void OnCreate() override;
 
 	void SetVertices(const std::vector<Vector3>& newVertices);
 	void SetTriangles(const std::vector<Vector3>& newTriangles);
 	void SetShader(Shader* newShader);
 	void Render();
+	void RenderDepth(Shader* depthShader);
 };

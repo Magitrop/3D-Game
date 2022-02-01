@@ -48,7 +48,7 @@ void MeshRendererComponent::RecalculateVertexNormals()
 					trianglesUsingThisVertex.push_back(j / 3);
 					break;
 				}
-		Vector3 n;
+		Vector3 n = Vector3();
 		for (int j = 0; j < trianglesUsingThisVertex.size(); j++)
 			n += faceNormals[trianglesUsingThisVertex[j]];
 		vertexNormals.push_back(glm::normalize(n));
@@ -163,11 +163,23 @@ void MeshRendererComponent::Render()
 		1,
 		GL_FALSE,
 		&gameObject->transform->GetMVPMatrix()[0][0]);
+
 	// attach light direction vector
 	glUniform3fv(
 		glGetUniformLocation(currentShader->ID, "lightDirection"),
 		1,
 		&light[0]);
+
+	glBindVertexArray(vertexArrayID);
+	glDrawElements(GL_TRIANGLES, trianglesCount * 3, GL_UNSIGNED_INT, triangles);
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+}
+
+void MeshRendererComponent::RenderDepth(Shader* depthShader)
+{
+	depthShader->Use();
 
 	glBindVertexArray(vertexArrayID);
 	glDrawElements(GL_TRIANGLES, trianglesCount * 3, GL_UNSIGNED_INT, triangles);

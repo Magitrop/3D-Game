@@ -1,5 +1,5 @@
 #include "Component.h"
-#include "../EventSystem.h"
+#include "../Controllers/EventSystem.h"
 
 Component::~Component()
 {

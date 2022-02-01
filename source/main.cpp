@@ -18,8 +18,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Initializer.h"
-#include "EventSystem.h"
+#include "Controllers/Initializer.h"
+#include "Controllers/EventSystem.h"
+#include "Controllers/LightingController.h"
 #include "GameObject/ObjectsManager.h"
 #include "Math/Vectors.h"
 #include "Shaders/Shader.h"
@@ -121,12 +122,16 @@ int main()
 	if (!Initializer.Init())
 		return -1;
 
-	auto camera = ObjectsManager::Instantiate<CameraComponent>(Vector3(0, 0, 3));
+	auto camera = ObjectsManager::Instantiate<CameraComponent>(Vector3(0, 0, -3));
 	EventSystem::SetAsMainCamera(camera);
 
 	// compile and setup the shader
 	Shader shader("..\\source\\TextVertexShader.vertexshader", "..\\source\\TextFragmentShader.fragmentshader");
 	Shader shader1("..\\source\\SimpleVertexShader.vertexshader", "..\\source\\SimpleFragmentShader.fragmentshader");
+	Shader depthShader("..\\source\\DepthShader.vertexshader", "..\\source\\DepthFragShader.fragmentshader");
+
+	LightingController::depthShader = &depthShader;
+	LightingController::Initialize();
 
 	// configure VAO/VBO for texture quads
 	glGenVertexArrays(1, &VAO);
@@ -173,36 +178,42 @@ int main()
 			Vector3(3, 7, 4)
 		});
 	mesh1->SetShader(&shader1);
-	mesh1->gameObject->transform->Rotate(Vectors::up, 45.f);
+
+	MeshRendererComponent* mesh2 = ObjectsManager::Instantiate<MeshRendererComponent>();
+	mesh2->SetVertices(
+		{
+			Vector3(0.0f, 0.0f, 0.0f),
+			Vector3(0.0f, 0.0f, 1.0f),
+			Vector3(1.0f, 0.0f, 1.0f),
+			Vector3(1.0f, 0.0f, 0.0f)
+		});
+	mesh2->SetTriangles(
+		{
+			Vector3(0, 1, 2),
+			Vector3(2, 3, 0),
+		});
+	mesh2->SetShader(&shader1);
+	mesh2->gameObject->transform->Scale(Vector3(10, 1, 10));
+	mesh2->gameObject->transform->Translate(Vectors::up, -1.f);
+	mesh2->gameObject->transform->Translate(Vectors::forward, -0.25f);
+	mesh2->gameObject->transform->Translate(Vectors::right, -0.25f);
 
 	glm::mat4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
 
-	//glEnable(GL_CULL_FACE);
-	//glFrontFace(GL_CCW);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_ALWAYS);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 
-	// render loop
-	// -----------
-	auto previousTime = std::chrono::high_resolution_clock::now();
+	std::vector<MeshRendererComponent*> meshesWithShadows { mesh1 };
 
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
-		EventSystem::Update();
+		LightingController::PrepareDepthMap(meshesWithShadows);
 
+		glViewport(0, 0, Initializer.windowSize.x, Initializer.windowSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Матрица модели : единичная матрица (Модель находится в начале координат)
-		glm::mat4 Model = glm::mat4(1.0f);  // Индивидуально для каждой модели
-
-		// Итоговая матрица ModelViewProjection, которая является результатом перемножения наших трех матриц
-		glm::mat4 MVP = camera->GetProjectionMatrix() * camera->GetViewMatrix() * Model; // Помните, что умножение матрицы производится в обратном порядке
-
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		uint64_t deltaTime = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - previousTime).count();
-		previousTime = currentTime;
+		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
 
 		RenderText(
 			shader, 
@@ -211,6 +222,9 @@ int main()
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
 
 		mesh1->Render();
+		mesh2->Render();
+
+		EventSystem::Update();
 
 		for (long long i = 0; i < 1999999; ++i);
 

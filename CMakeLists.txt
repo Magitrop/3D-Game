@@ -11,9 +11,12 @@ add_executable(
     ${project_name}
         source/main.cpp
 
-        source/Initializer.h
-        source/EventSystem.h
-        source/EventSystem.cpp
+        source/Controllers/Initializer.h
+        source/Controllers/Initializer.cpp
+        source/Controllers/EventSystem.h
+        source/Controllers/EventSystem.cpp
+        source/Controllers/LightingController.h
+        source/Controllers/LightingController.cpp
 
         source/Shaders/Shader.h
         source/Shaders/Shader.cpp
