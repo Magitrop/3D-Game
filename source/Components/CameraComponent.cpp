@@ -22,7 +22,7 @@ void CameraComponent::RecalculateViewMatrix()
 	viewMatrix =
 		glm::lookAt(
 			gameObject->transform->GetPosition(),
-			targetPoint/*cameraPos + camera->forward*/,
+			targetPoint,//cameraPos + camera->forward,
 			Vectors::up
 		);
 }
@@ -71,13 +71,13 @@ void CameraComponent::OnMouseMove(GLFWwindow* window, double x, double y, Vector
 		auto cam = targetPoint + Vectors::MultiplyPoint(
 			glm::rotate(
 				Matrix4x4(1),
-				gameObject->transform->GetRotation().x - newRotation.x,
+				glm::radians(gameObject->transform->GetRotation().x - newRotation.x),
 				gameObject->transform->GetRight()),
 			gameObject->transform->GetPosition() - targetPoint);
 		cam = targetPoint + Vectors::MultiplyPoint(
 			glm::rotate(
 				Matrix4x4(1),
-				newRotation.y - gameObject->transform->GetRotation().y,
+				glm::radians(newRotation.y - gameObject->transform->GetRotation().y),
 				Vectors::up),
 			cam - targetPoint);
 

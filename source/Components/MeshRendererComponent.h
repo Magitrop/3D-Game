@@ -35,7 +35,7 @@ protected:
 	std::vector<Vector3> vertexNormals;
 	Shader* currentShader = nullptr;
 	
-	Vector3 light = Vector3(1, -1, 1);
+	Vector3 light = Vector3(0, 5, 0);
 
 	void RecalculateFaceNormals();
 	void RecalculateVertexNormals();

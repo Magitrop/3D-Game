@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 
 #include "MeshRendererComponent.h"
+#include "../Controllers/LightingController.h"
 
 void MeshRendererComponent::RecalculateFaceNormals()
 {
@@ -143,6 +144,31 @@ void MeshRendererComponent::SetTriangles(const std::vector<Vector3>& newTriangle
 		0,
 		(void*)0
 	);
+
+	std::vector<Vector2> texPositions 
+	{
+		Vector2(0, 1),
+		Vector2(1, 1),
+		Vector2(1, 0),
+		Vector2(0, 0)
+	};
+	GLuint texPosBuffer = 0;
+
+	if (glIsBuffer(texPosBuffer))
+		glDeleteBuffers(1, &texPosBuffer);
+	glGenBuffers(1, &texPosBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, texPosBuffer);
+	glBufferData(GL_ARRAY_BUFFER, texPositions.size() * sizeof(Vector2), &texPositions[0], GL_STATIC_DRAW);
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer
+	(
+		3,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		(void*)0
+	);
 	//
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -163,6 +189,12 @@ void MeshRendererComponent::Render()
 		1,
 		GL_FALSE,
 		&gameObject->transform->GetMVPMatrix()[0][0]);
+	currentShader->setMat4("projection", EventSystem::GetMainCamera()->GetProjectionMatrix());
+	currentShader->setMat4("view", EventSystem::GetMainCamera()->GetViewMatrix());
+	currentShader->setMat4("model", gameObject->transform->GetModelMatrix());
+	currentShader->setVec3("lightPos", LightingController::lightPos);
+	currentShader->setMat4("lightSpaceMatrix", LightingController::lightSpaceMatrix);
+	currentShader->setVec3("viewPos", EventSystem::GetMainCamera()->gameObject->transform->GetPosition());
 
 	// attach light direction vector
 	glUniform3fv(
@@ -180,6 +212,9 @@ void MeshRendererComponent::Render()
 void MeshRendererComponent::RenderDepth(Shader* depthShader)
 {
 	depthShader->Use();
+
+	depthShader->setMat4("model", gameObject->transform->GetModelMatrix());
+	depthShader->setMat4("lightSpaceMatrix", LightingController::lightSpaceMatrix);
 
 	glBindVertexArray(vertexArrayID);
 	glDrawElements(GL_TRIANGLES, trianglesCount * 3, GL_UNSIGNED_INT, triangles);

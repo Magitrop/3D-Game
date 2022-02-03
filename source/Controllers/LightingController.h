@@ -16,14 +16,16 @@ private:
 	static unsigned int SHADOW_HEIGHT;
 	static unsigned int depthMap;
 
-	static Matrix4x4 lightProjection;
-	static Matrix4x4 lightView;
-	static Matrix4x4 lightSpaceMatrix;
-
 	static GLint lightSpaceMatrixID;
 
 	static void RecalculateDepthMap();
 public:
+	static Matrix4x4 lightProjection;
+	static Matrix4x4 lightView;
+	static Matrix4x4 lightSpaceMatrix;
+	static Vector3 lightPos;
+	static Vector3 lightRot;
+
 	static Shader* depthShader;
 	static void Initialize();
 	static void SetShadowMapScale(unsigned int width, unsigned int height);

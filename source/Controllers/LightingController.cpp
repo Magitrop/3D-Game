@@ -17,23 +17,36 @@ Shader* LightingController::depthShader;
 Matrix4x4 LightingController::lightProjection;
 Matrix4x4 LightingController::lightView;
 Matrix4x4 LightingController::lightSpaceMatrix;
+Vector3 LightingController::lightPos;
+Vector3 LightingController::lightRot;
 
 GLint LightingController::lightSpaceMatrixID;
 
 void LightingController::RecalculateDepthMap()
 {
-	float near_plane = 1.0f, far_plane = 7.5f;
-	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	float near_plane = 0.1f, far_plane = 100.f;
+	//lightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, near_plane, far_plane);
+	lightProjection = glm::perspective(glm::radians(90.0f), Initializer.GetAspectRatio(), near_plane, far_plane);
 	lightView =
+		glm::rotate(Matrix4x4(1), glm::radians(60.f), Vectors::right) *
+		glm::rotate(Matrix4x4(1), glm::radians(lightRot.y), Vectors::up) *
+		glm::translate(Matrix4x4(1), -lightPos);
+	/*lightView =
 		glm::lookAt(
-			glm::vec3(-2.0f, 4.0f, -1.0f),
-			glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3(0.0f, 1.0f, 0.0f));
+			lightPos,
+			Vector3(0.0f, 0.0f, 0.0f),
+			Vector3(0.0f, 1.0f, 0.0f));*/
+	/*for (int x = 0; x < 4; x++, cout << endl)
+		for (int y = 0; y < 4; y++)
+			cout << lightView[x][y] << " ";
+	cout << endl;*/
 	lightSpaceMatrix = lightProjection * lightView;
 }
 
 void LightingController::Initialize()
 {
+	SetShadowMapScale(2048, 2048);
+
 	if (glIsFramebuffer(depthMapFBO))
 		glDeleteFramebuffers(1, &depthMapFBO);
 	glGenFramebuffers(1, &depthMapFBO);
@@ -57,7 +70,6 @@ void LightingController::Initialize()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	lightSpaceMatrixID = glGetUniformLocation(depthShader->ID, "lightSpaceMatrix");
-	SetShadowMapScale(1024, 1024);
 }
 
 void LightingController::SetShadowMapScale(unsigned int width, unsigned int height)
@@ -69,11 +81,15 @@ void LightingController::SetShadowMapScale(unsigned int width, unsigned int heig
 
 void LightingController::PrepareDepthMap(std::vector<MeshRendererComponent*> meshesWithShadows)
 {
+	RecalculateDepthMap();
+
 	depthShader->Use();
-	glUniformMatrix4fv(lightSpaceMatrixID, 1, GL_FALSE, &lightSpaceMatrix[0][0]);
+	depthShader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GetDepthMapID());
 	for (int i = 0; i < meshesWithShadows.size(); i++)
 		meshesWithShadows[i]->RenderDepth(depthShader);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

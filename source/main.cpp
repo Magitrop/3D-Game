@@ -128,9 +128,12 @@ int main()
 	// compile and setup the shader
 	Shader shader("..\\source\\TextVertexShader.vertexshader", "..\\source\\TextFragmentShader.fragmentshader");
 	Shader shader1("..\\source\\SimpleVertexShader.vertexshader", "..\\source\\SimpleFragmentShader.fragmentshader");
+	Shader mapShader("..\\source\\TextureVertShader.vertexshader", "..\\source\\TextureFragmentShader.fragmentshader");
 	Shader depthShader("..\\source\\DepthShader.vertexshader", "..\\source\\DepthFragShader.fragmentshader");
+	Shader shaderWithShadows("..\\source\\ShadowsVert.vertexshader", "..\\source\\ShadowsFrag.fragmentshader");
 
 	LightingController::depthShader = &depthShader;
+	LightingController::lightPos = Vector3(-3, 3, -3);
 	LightingController::Initialize();
 
 	// configure VAO/VBO for texture quads
@@ -177,7 +180,7 @@ int main()
 			Vector3(4, 0, 3),
 			Vector3(3, 7, 4)
 		});
-	mesh1->SetShader(&shader1);
+	mesh1->SetShader(&shaderWithShadows);
 
 	MeshRendererComponent* mesh2 = ObjectsManager::Instantiate<MeshRendererComponent>();
 	mesh2->SetVertices(
@@ -192,9 +195,8 @@ int main()
 			Vector3(0, 1, 2),
 			Vector3(2, 3, 0),
 		});
-	mesh2->SetShader(&shader1);
+	mesh2->SetShader(&shaderWithShadows);
 	mesh2->gameObject->transform->Scale(Vector3(10, 1, 10));
-	mesh2->gameObject->transform->Translate(Vectors::up, -1.f);
 	mesh2->gameObject->transform->Translate(Vectors::forward, -0.25f);
 	mesh2->gameObject->transform->Translate(Vectors::right, -0.25f);
 
@@ -207,20 +209,29 @@ int main()
 
 	std::vector<MeshRendererComponent*> meshesWithShadows { mesh1 };
 
+	unsigned int quadVAO = 0;
+	unsigned int quadVBO;
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
+		LightingController::lightRot.y += 0.2f;
 		LightingController::PrepareDepthMap(meshesWithShadows);
 
 		glViewport(0, 0, Initializer.windowSize.x, Initializer.windowSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
 
 		RenderText(
 			shader, 
 			Vectors::VectorToString(camera->gameObject->transform->GetRotation()), 
 			0.0f, 10.0f, 0.75f, Vector3(1.0f, 1.0f, 1.0f));
+		RenderText(
+			shader,
+			Vectors::VectorToString(camera->gameObject->transform->GetPosition()),
+			0.0f, 40.0f, 0.75f, Vector3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
+		shaderWithShadows.SetInt("shadowMap", 0);
 		mesh1->Render();
 		mesh2->Render();
 

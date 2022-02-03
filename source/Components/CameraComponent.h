@@ -35,10 +35,10 @@ protected:
 	void RecalculateProjectionMatrix();
 	void RecalculateViewMatrix();
 public:
-	float rotationSpeed = 0.001f;
+	float rotationSpeed = 0.03f;
 	float movementSpeed = 0.05f;
 	float zoomIntensity = 0.2f;
-	Vector2 cameraRestraints = Vector2(glm::radians(0.f), glm::radians(80.f));
+	Vector2 cameraRestraints = Vector2(0, 80);
 
 	void SetFieldOfView(float fov);
 	void SetClippingPlanes(float near, float far);
