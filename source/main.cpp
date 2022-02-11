@@ -133,7 +133,8 @@ int main()
 	Shader shaderWithShadows("..\\source\\ShadowsVert.vertexshader", "..\\source\\ShadowsFrag.fragmentshader");
 
 	LightingController::depthShader = &depthShader;
-	LightingController::lightPos = Vector3(-3, 3, -3);
+	LightingController::lightPos = Vector3(0, 3, 0);
+	LightingController::lightRot = Vector3(30, 90, 0);
 	LightingController::Initialize();
 
 	// configure VAO/VBO for texture quads
@@ -147,40 +148,46 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	MeshRendererComponent* mesh1 = ObjectsManager::Instantiate<MeshRendererComponent>();
-	mesh1->SetVertices(
-		{
-			Vector3(0.0f, 0.0f, 0.0f),
-			Vector3(0.0f, 1.0f, 0.0f),
-			Vector3(1.0f, 1.0f, 0.0f),
-			Vector3(1.0f, 0.0f, 0.0f),
+	std::vector<MeshRendererComponent*> meshes;
+	for (int i = 0; i < 2; i++)
+	{
+		MeshRendererComponent* m = ObjectsManager::Instantiate<MeshRendererComponent>();
+		m->SetVertices(
+			{
+				Vector3(0.0f, 0.0f, 0.0f),
+				Vector3(0.0f, 1.0f, 0.0f),
+				Vector3(1.0f, 1.0f, 0.0f),
+				Vector3(1.0f, 0.0f, 0.0f),
 
-			Vector3(0.0f, 0.0f, 1.0f),
-			Vector3(0.0f, 1.0f, 1.0f),
-			Vector3(1.0f, 1.0f, 1.0f),
-			Vector3(1.0f, 0.0f, 1.0f)
-		});
-	mesh1->SetTriangles(
-		{
-			Vector3(0, 1, 2),
-			Vector3(2, 3, 0),
+				Vector3(0.0f, 0.0f, 1.0f),
+				Vector3(0.0f, 1.0f, 1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, 0.0f, 1.0f)
+			});
+		m->SetTriangles(
+			{
+				Vector3(0, 1, 2),
+				Vector3(2, 3, 0),
 
-			Vector3(3, 2, 6),
-			Vector3(6, 7, 3),
+				Vector3(3, 2, 6),
+				Vector3(6, 7, 3),
 
-			Vector3(7, 6, 5),
-			Vector3(5, 4, 7),
+				Vector3(7, 6, 5),
+				Vector3(5, 4, 7),
 
-			Vector3(4, 5, 1),
-			Vector3(1, 0, 4),
+				Vector3(4, 5, 1),
+				Vector3(1, 0, 4),
 
-			Vector3(1, 5, 6),
-			Vector3(6, 2, 1),
+				Vector3(1, 5, 6),
+				Vector3(6, 2, 1),
 
-			Vector3(4, 0, 3),
-			Vector3(3, 7, 4)
-		});
-	mesh1->SetShader(&shaderWithShadows);
+				Vector3(4, 0, 3),
+				Vector3(3, 7, 4)
+			});
+		m->SetShader(&shaderWithShadows);
+		m->gameObject->transform->Translate(Vector3(0, 0, i * 1.5f));
+		meshes.push_back(m);
+	}
 
 	MeshRendererComponent* mesh2 = ObjectsManager::Instantiate<MeshRendererComponent>();
 	mesh2->SetVertices(
@@ -207,14 +214,12 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	std::vector<MeshRendererComponent*> meshesWithShadows { mesh1 };
-
 	unsigned int quadVAO = 0;
 	unsigned int quadVBO;
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
-		LightingController::lightRot.y += 0.2f;
-		LightingController::PrepareDepthMap(meshesWithShadows);
+		LightingController::lightRot.y += 0.1f;
+		LightingController::PrepareDepthMap(meshes);
 
 		glViewport(0, 0, Initializer.windowSize.x, Initializer.windowSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -232,7 +237,8 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
 		shaderWithShadows.SetInt("shadowMap", 0);
-		mesh1->Render();
+		for (auto it = meshes.begin(); it != meshes.end(); it++)
+			(*it)->Render();
 		mesh2->Render();
 
 		EventSystem::Update();
