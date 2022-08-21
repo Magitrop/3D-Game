@@ -26,7 +26,7 @@ public:
 
 class TextRendererComponent : public Component
 {
-	COMPONENT(TextRendererComponent)
+	COMPONENT(TextRendererComponent, Component)
 private:
 public:
 };

@@ -7,13 +7,14 @@
 #include "LightingController.h"
 #include <glm\ext\matrix_transform.hpp>
 #include <glm\ext\matrix_clip_space.hpp>
+#include "../Shaders/Shader.h"
 
 unsigned int LightingController::depthMapFBO;
 unsigned int LightingController::SHADOW_WIDTH;
 unsigned int LightingController::SHADOW_HEIGHT;
 unsigned int LightingController::depthMap;
 
-Shader* LightingController::depthShader;
+const Shader* LightingController::depthShader;
 Matrix4x4 LightingController::lightProjection;
 Matrix4x4 LightingController::lightView;
 Matrix4x4 LightingController::lightSpaceMatrix;
@@ -25,17 +26,17 @@ GLint LightingController::lightSpaceMatrixID;
 void LightingController::RecalculateDepthMap()
 {
 	float near_plane = 0.1f, far_plane = 100.f;
-	lightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, near_plane, far_plane);
-	//lightProjection = glm::perspective(glm::radians(90.0f), Initializer.GetAspectRatio(), near_plane, far_plane);
-	lightView =
-		glm::rotate(Matrix4x4(1), glm::radians(lightRot.x), Vectors::right) *
-		glm::rotate(Matrix4x4(1), glm::radians(lightRot.y), Vectors::up) *
-		glm::translate(Matrix4x4(1), -lightPos);
+	//lightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, near_plane, far_plane);
+	lightProjection = glm::perspective(glm::radians(90.0f), Initializer.GetAspectRatio(), near_plane, far_plane);
 	/*lightView =
+		glm::rotate(Matrix4x4(1), glm::radians(60.f), Vectors::right) *
+		glm::rotate(Matrix4x4(1), glm::radians(lightRot.y), Vectors::up) *
+		glm::translate(Matrix4x4(1), -lightPos);*/
+	lightView =
 		glm::lookAt(
 			lightPos,
 			Vector3(0.0f, 0.0f, 0.0f),
-			Vector3(0.0f, 1.0f, 0.0f));*/
+			Vector3(0.0f, 1.0f, 0.0f));
 	/*for (int x = 0; x < 4; x++, cout << endl)
 		for (int y = 0; y < 4; y++)
 			cout << lightView[x][y] << " ";
@@ -45,7 +46,7 @@ void LightingController::RecalculateDepthMap()
 
 void LightingController::Initialize()
 {
-	SetShadowMapScale(2048, 2048);
+	SetShadowMapScale(Initializer.windowSize.x * 4, Initializer.windowSize.y * 4);
 
 	if (glIsFramebuffer(depthMapFBO))
 		glDeleteFramebuffers(1, &depthMapFBO);
@@ -60,7 +61,8 @@ void LightingController::Initialize()
 		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+	/*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);*/
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -82,7 +84,7 @@ void LightingController::SetShadowMapScale(unsigned int width, unsigned int heig
 	RecalculateDepthMap();
 }
 
-void LightingController::PrepareDepthMap(std::vector<MeshRendererComponent*> meshesWithShadows)
+void LightingController::PrepareDepthMap(std::vector<ModelRendererComponent*> meshesWithShadows)
 {
 	RecalculateDepthMap();
 

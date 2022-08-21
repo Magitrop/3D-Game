@@ -1,11 +1,12 @@
 #version 330 core
 
 layout (location = 0) in vec3 vertexPosition;
-layout (location = 2) in vec3 normal;
-layout (location = 3) in vec2 aTexCoords;
+layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 aTexCoords;
  
 out VS_OUT 
 {
+	float FragHeight;
 	vec3 FragPos;
 	vec3 Normal;
 	vec2 TexCoords;
@@ -20,6 +21,7 @@ uniform mat4 lightSpaceMatrix;
 void main()
 {
 	vs_out.FragPos = vec3(model * vec4(vertexPosition, 1.0));
+	vs_out.FragHeight = vs_out.FragPos.y - vec3(model * vec4(1)).y;
 	vs_out.Normal = transpose(inverse(mat3(model))) * normal;
 	vs_out.TexCoords = aTexCoords;
 	vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);

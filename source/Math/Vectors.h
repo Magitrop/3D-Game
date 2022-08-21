@@ -9,6 +9,7 @@
 using glm::Vector2;
 using glm::Vector3;
 using glm::Vector4;
+using glm::Color;
 using glm::Matrix4x4;
 
 namespace Vectors
@@ -42,6 +43,7 @@ namespace Vectors
 std::ostream& operator << (std::ostream& stream, const Vector2& vec);
 std::ostream& operator << (std::ostream& stream, const Vector3& vec);
 std::ostream& operator << (std::ostream& stream, const Vector4& vec);
+std::ostream& operator << (std::ostream& stream, const Matrix4x4& mat);
 
 Vector2& operator * (Vector2& vec, int value);
 Vector2& operator * (Vector2& vec, float value);

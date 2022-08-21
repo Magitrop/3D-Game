@@ -14,7 +14,7 @@
 class CameraComponent : public Component,
 	MustBeUniqueComponentAttribute
 {
-	COMPONENT(CameraComponent)
+	COMPONENT(CameraComponent, Component)
 protected:
 	glm::Matrix4x4 projectionMatrix;
 	glm::Matrix4x4 viewMatrix;

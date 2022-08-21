@@ -74,6 +74,11 @@ bool InitializationHandler::Init()
 	glfwSetScrollCallback(window, EventSystem::MouseWheelEvent);
 	glfwSetFramebufferSizeCallback(window, EventSystem::WindowResizeEvent);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	return true;
 }
 

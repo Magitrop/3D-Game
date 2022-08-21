@@ -1,11 +1,11 @@
 #pragma once
-#include "../Shaders/Shader.h"
 #include <glm\ext\matrix_float4x4.hpp>
 #include <vector>
-#include "../Components/MeshRendererComponent.h"
+#include "../Components/ModelRendererComponent.h"
 
 using glm::Matrix4x4;
 
+class Shader;
 class LightingController final
 {
 private:
@@ -26,9 +26,9 @@ public:
 	static Vector3 lightPos;
 	static Vector3 lightRot;
 
-	static Shader* depthShader;
+	static const Shader* depthShader;
 	static void Initialize();
 	static void SetShadowMapScale(unsigned int width, unsigned int height);
-	static void PrepareDepthMap(std::vector<MeshRendererComponent*> meshesWithShadows);
+	static void PrepareDepthMap(std::vector<ModelRendererComponent*> meshesWithShadows);
 	static GLuint GetDepthMapID();
 };

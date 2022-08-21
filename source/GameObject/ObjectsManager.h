@@ -3,13 +3,18 @@
 #include <list>
 
 #include "GameObject.h"
+#include "../Components/RendererComponentBase.h"
 
 class ObjectsManager final
 {
 private:
+	friend int main();
+	friend class RendererComponentBase;
+
 	ObjectsManager() = delete;
 
 	static std::list<GameObject*> instantiatedObjects;
+	static std::list<RendererComponentBase*> renderQueue;
 public:
 	template<class T> static T* Instantiate()
 	{

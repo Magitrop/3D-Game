@@ -1,5 +1,6 @@
 #include "Vectors.h"
 #include <string>
+#include <iomanip>
 
 const Vector3&& Vectors::zero = Vector3(0, 0, 0);
 const Vector3&& Vectors::one = Vector3(1, 1, 1);
@@ -95,6 +96,13 @@ std::ostream& operator << (std::ostream& stream, const Vector3& vec)
 std::ostream& operator << (std::ostream& stream, const Vector4& vec)
 {
 	stream << "(" << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ")";
+	return stream;
+}
+std::ostream& operator << (std::ostream& stream, const Matrix4x4& mat)
+{
+	for (int x = 0; x < 4; x++, stream << std::endl)
+		for (int y = 0; y < 4; y++)
+			stream << std::setw(10) << mat[x][y] << " ";
 	return stream;
 }
 

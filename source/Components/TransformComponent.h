@@ -6,7 +6,7 @@ class TransformComponent : public Component,
 	CannotBeRemovedComponentAttribute,
 	MustBeUniqueComponentAttribute
 {
-	COMPONENT(TransformComponent)
+	COMPONENT(TransformComponent, Component)
 protected:
 	Vector3 position = Vector3();
 	Vector3 rotation = Vector3();

@@ -83,7 +83,7 @@ const Vector3& TransformComponent::SetUp(const Vector3& vec)
 	return forward;
 }
 
-const Vector3& TransformComponent::Translate(const Vector3& vec) { return position += vec; }
+const Vector3& TransformComponent::Translate(const Vector3& vec) { return position += vec / scale; }
 const Vector3& TransformComponent::Translate(const Vector3& direction, float distance)
 {
 	return position += glm::normalize(direction) * distance;
@@ -94,10 +94,12 @@ const Vector3& TransformComponent::Rotate(const Vector3& axis, float angle)
 	rotation.x += angle * ((axis.x > 0) - (axis.x < 0));
 	rotation.y += angle * ((axis.y > 0) - (axis.y < 0));
 	rotation.z += angle * ((axis.z > 0) - (axis.z < 0));
-	std::cout << rotation << std::endl;
 	return rotation;
 }
 const Vector3& TransformComponent::Scale(const Vector3& sc)
 {
-	return scale += sc;
+	scale.x *= sc.x;
+	scale.y *= sc.y;
+	scale.z *= sc.z;
+	return scale;
 }

@@ -101,7 +101,7 @@ void CameraComponent::OnWindowResize(GLFWwindow* window, int width, int height)
 
 void CameraComponent::OnMouseWheel(GLFWwindow* window, double xoffset, double yoffset)
 {
-	gameObject->transform->Translate(gameObject->transform->GetForward() * yoffset * zoomIntensity);
+	gameObject->transform->Translate(gameObject->transform->GetForward() * static_cast<float>(yoffset) * zoomIntensity);
 }
 
 void CameraComponent::OnUpdate()

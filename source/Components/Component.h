@@ -5,10 +5,10 @@
 
 class GameObject;
 
-#define COMPONENT(name) \
+#define COMPONENT(name, base) \
 friend class GameObject; \
 protected: \
-explicit name(GameObject* gameObject) : Component(gameObject) { OnCreate(); } \
+explicit name(GameObject* gameObject) : base(gameObject) { OnCreate(); } \
 
 #define ATTACH_UPDATE \
 EventSystem::AttachUpdateEventListener(GetComponentID(), \
@@ -78,7 +78,6 @@ protected:
 	}
 
 	~Component();
-
 public:
 	GameObject* const gameObject;
 

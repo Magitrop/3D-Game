@@ -18,104 +18,38 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "PerlinNoise.hpp"
 #include "Controllers/Initializer.h"
 #include "Controllers/EventSystem.h"
 #include "Controllers/LightingController.h"
 #include "GameObject/ObjectsManager.h"
 #include "Math/Vectors.h"
 #include "Shaders/Shader.h"
-#include "Components/MeshRendererComponent.h"
+#include "Components/ModelRendererComponent.h"
 #include "Components/TextRendererComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
+#include "Controllers/ResourceManager.h"
 
 using glm::Matrix4x4;
 
-GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path) {
-
-	// Создаем шейдеры
-	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-	// Загружаем код Вершинного Шейдера из файла
-	std::string VertexShaderCode;
-	std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
-	if (VertexShaderStream.is_open())
-	{
-		std::stringstream sstr;
-		sstr << VertexShaderStream.rdbuf();
-		VertexShaderCode = sstr.str();
-		VertexShaderStream.close();
-	}
-
-	// Загружаем код Фрагментного шейдера из файла
-	std::string FragmentShaderCode;
-	std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-	if (FragmentShaderStream.is_open()) {
-		std::stringstream sstr;
-		sstr << FragmentShaderStream.rdbuf();
-		FragmentShaderCode = sstr.str();
-		FragmentShaderStream.close();
-	}
-
-	GLint Result = GL_FALSE;
-	GLint InfoLogLength;
-
-	// Компилируем Вершинный шейдер
-	printf("compiling shader: %s\n", vertex_file_path);
-	char const* VertexSourcePointer = VertexShaderCode.c_str();
-	glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
-	glCompileShader(VertexShaderID);
-
-	// Выполняем проверку Вершинного шейдера
-	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if (InfoLogLength > 0) {
-		std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
-		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-		fprintf(stdout, "%s\n", &VertexShaderErrorMessage[0]);
-	}
-
-	// Компилируем Фрагментный шейдер
-	printf("compiling shader: %s\n", fragment_file_path);
-	char const* FragmentSourcePointer = FragmentShaderCode.c_str();
-	glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
-	glCompileShader(FragmentShaderID);
-
-	// Проверяем Фрагментный шейдер
-	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if (InfoLogLength > 0) {
-		std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
-		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-		fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
-	}
-
-	// Создаем шейдерную программу и привязываем шейдеры к ней
-	fprintf(stdout, "attaching shaders\n");
-	GLuint ProgramID = glCreateProgram();
-	glAttachShader(ProgramID, VertexShaderID);
-	glAttachShader(ProgramID, FragmentShaderID);
-	glLinkProgram(ProgramID);
-
-	// Проверяем шейдерную программу
-	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	if (InfoLogLength > 0) {
-		std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
-		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-		fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
-	}
-
-	glDeleteShader(VertexShaderID);
-	glDeleteShader(FragmentShaderID);
-
-	return ProgramID;
-}
-
-void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color);
+void RenderText(const Shader& shader, std::string text, float x, float y, float scale, Color color);
 
 unsigned int VAO, VBO;
+
+void LoadShaders()
+{
+	ResourceManager::UploadShader(Shader("..\\source\\TextVertexShader.vertexshader", "..\\source\\TextFragmentShader.fragmentshader"), "Text");
+	ResourceManager::UploadShader(Shader("..\\source\\SimpleVertexShader.vertexshader", "..\\source\\SimpleFragmentShader.fragmentshader"), "Simple");
+	//Shader::UploadShader(Shader("..\\source\\TextureVertShader.vertexshader", "..\\source\\TextureFragmentShader.fragmentshader"), "Map");
+	ResourceManager::UploadShader(Shader("..\\source\\DepthShader.vertexshader", "..\\source\\DepthFragShader.fragmentshader"), "Depth");
+	ResourceManager::UploadShader(Shader("..\\source\\ShadowsVert.vertexshader", "..\\source\\ShadowsFrag.fragmentshader"), "Shadows");
+}
+
+void LoadModels()
+{
+	ResourceManager::UploadModel(Model("C:/Users/Schweppes_psina/Desktop/castle.fbx"), "Castle");
+}
 
 int main()
 {
@@ -124,122 +58,92 @@ int main()
 
 	auto camera = ObjectsManager::Instantiate<CameraComponent>(Vector3(0, 0, -3));
 	EventSystem::SetAsMainCamera(camera);
+	LoadShaders();
+	LoadModels();
 
-	// compile and setup the shader
-	Shader shader("..\\source\\TextVertexShader.vertexshader", "..\\source\\TextFragmentShader.fragmentshader");
-	Shader shader1("..\\source\\SimpleVertexShader.vertexshader", "..\\source\\SimpleFragmentShader.fragmentshader");
-	Shader mapShader("..\\source\\TextureVertShader.vertexshader", "..\\source\\TextureFragmentShader.fragmentshader");
-	Shader depthShader("..\\source\\DepthShader.vertexshader", "..\\source\\DepthFragShader.fragmentshader");
-	Shader shaderWithShadows("..\\source\\ShadowsVert.vertexshader", "..\\source\\ShadowsFrag.fragmentshader");
-
-	LightingController::depthShader = &depthShader;
-	LightingController::lightPos = Vector3(0, 3, 0);
-	LightingController::lightRot = Vector3(30, 90, 0);
+	LightingController::depthShader = &ResourceManager::GetShader("Depth");
+	LightingController::lightPos = Vector3(-4, 4, 5);
 	LightingController::Initialize();
 
-	// configure VAO/VBO for texture quads
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	std::vector<Texture> textures = { };
+	ModelRendererComponent* meshObj1 = ObjectsManager::Instantiate<ModelRendererComponent>();
+	meshObj1->SetModel(&ResourceManager::GetModel("Castle"));
+	meshObj1->SetShader(&ResourceManager::GetShader("Shadows"));
+	meshObj1->gameObject->transform->Scale({ 0.001f, 0.001f, 0.001f });
+	meshObj1->gameObject->transform->Translate({ 1, 0, 4 });
 
-	std::vector<MeshRendererComponent*> meshes;
-	for (int i = 0; i < 2; i++)
+	std::vector<Vertex> vertices;
+	std::vector<unsigned int> triangles;
+
+	const siv::PerlinNoise::seed_type seed = 123456u;
+	const siv::PerlinNoise perlin { seed };
+
+	int sizeX = 30,
+		sizeZ = 30;
+	float scale = 0.05f;
+
+	vertices.reserve((sizeX + 1) * (sizeZ + 1));
+	std::map<std::pair<int, int>, std::vector<Vertex*>> tilePositions;
+	for (int z = 0; z <= sizeZ; z++)
+		for (int x = 0; x <= sizeX; x++)
+		{
+			vertices.push_back(Vector3(x * scale, 0, z * scale));
+			Vertex* v = &vertices[vertices.size() - 1];
+			tilePositions[std::make_pair(x / 2, z / 2)].push_back(v);
+		}
+	float height = 1.f;//perlin.octave2D_01(x * 0.1, z * 0.1f, 4) * 3;
+	for (auto v : tilePositions[std::make_pair(2, 2)])
+		v->Position.y = height;
+	/*for (auto p : tilePositions)
 	{
-		MeshRendererComponent* m = ObjectsManager::Instantiate<MeshRendererComponent>();
-		m->SetVertices(
-			{
-				Vector3(0.0f, 0.0f, 0.0f),
-				Vector3(0.0f, 1.0f, 0.0f),
-				Vector3(1.0f, 1.0f, 0.0f),
-				Vector3(1.0f, 0.0f, 0.0f),
-
-				Vector3(0.0f, 0.0f, 1.0f),
-				Vector3(0.0f, 1.0f, 1.0f),
-				Vector3(1.0f, 1.0f, 1.0f),
-				Vector3(1.0f, 0.0f, 1.0f)
-			});
-		m->SetTriangles(
-			{
-				Vector3(0, 1, 2),
-				Vector3(2, 3, 0),
-
-				Vector3(3, 2, 6),
-				Vector3(6, 7, 3),
-
-				Vector3(7, 6, 5),
-				Vector3(5, 4, 7),
-
-				Vector3(4, 5, 1),
-				Vector3(1, 0, 4),
-
-				Vector3(1, 5, 6),
-				Vector3(6, 2, 1),
-
-				Vector3(4, 0, 3),
-				Vector3(3, 7, 4)
-			});
-		m->SetShader(&shaderWithShadows);
-		m->gameObject->transform->Translate(Vector3(0, 0, i * 1.5f));
-		meshes.push_back(m);
+		auto& [x, z] = p.first;
+		float height = -(x * z) * 0.01f;//perlin.octave2D_01(x * 0.1, z * 0.1f, 4) * 3;
+		for (auto v : p.second)
+			v->Position.y = height;
+	}*/
+	triangles.resize(sizeX * sizeZ * 6);
+	for (int ti = 0, vi = 0, z = 0; z < sizeZ; z++, vi++) 
+	{
+		for (int x = 0; x < sizeX; x++, ti += 6, vi++) 
+		{
+			triangles[ti] = vi;
+			triangles[ti + 3] = triangles[ti + 2] = vi + 1;
+			triangles[ti + 4] = triangles[ti + 1] = vi + sizeX + 1;
+			triangles[ti + 5] = vi + sizeX + 2;
+		}
 	}
+	ModelRendererComponent* meshObj2 = ObjectsManager::Instantiate<ModelRendererComponent>();
+	meshObj2->SetModel(new Model({ new Mesh(vertices, triangles, textures) }));
+	meshObj2->SetShader(&ResourceManager::GetShader("Shadows"));
+	meshObj2->gameObject->transform->Scale(Vector3(10, 1, 10));
 
-	MeshRendererComponent* mesh2 = ObjectsManager::Instantiate<MeshRendererComponent>();
-	mesh2->SetVertices(
-		{
-			Vector3(0.0f, 0.0f, 0.0f),
-			Vector3(0.0f, 0.0f, 1.0f),
-			Vector3(1.0f, 0.0f, 1.0f),
-			Vector3(1.0f, 0.0f, 0.0f)
-		});
-	mesh2->SetTriangles(
-		{
-			Vector3(0, 1, 2),
-			Vector3(2, 3, 0),
-		});
-	mesh2->SetShader(&shaderWithShadows);
-	mesh2->gameObject->transform->Scale(Vector3(10, 1, 10));
-	mesh2->gameObject->transform->Translate(Vectors::forward, -0.25f);
-	mesh2->gameObject->transform->Translate(Vectors::right, -0.25f);
+	Matrix4x4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
 
-	glm::mat4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
+	std::vector<ModelRendererComponent*> meshesWithShadows { meshObj1, meshObj2 };
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-
-	unsigned int quadVAO = 0;
-	unsigned int quadVBO;
+	float t = 0;
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
-		LightingController::lightRot.y += 0.1f;
-		LightingController::PrepareDepthMap(meshes);
+		LightingController::PrepareDepthMap(meshesWithShadows);
 
 		glViewport(0, 0, Initializer.windowSize.x, Initializer.windowSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		RenderText(
-			shader, 
+			ResourceManager::GetShader("Text"),
 			Vectors::VectorToString(camera->gameObject->transform->GetRotation()), 
-			0.0f, 10.0f, 0.75f, Vector3(1.0f, 1.0f, 1.0f));
+			0.0f, 10.0f, 0.75f, Color(1.0f, 1.0f, 1.0f, 1.0f));
 		RenderText(
-			shader,
+			ResourceManager::GetShader("Text"),
 			Vectors::VectorToString(camera->gameObject->transform->GetPosition()),
-			0.0f, 40.0f, 0.75f, Vector3(1.0f, 1.0f, 1.0f));
-		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, &projection[0][0]);
+			0.0f, 40.0f, 0.75f, Color(1.0f, 1.0f, 1.0f, 1.0f));
+		glUniformMatrix4fv(glGetUniformLocation(ResourceManager::GetShader("Text").ID, "projection"), 1, GL_FALSE, &projection[0][0]);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
-		shaderWithShadows.SetInt("shadowMap", 0);
-		for (auto it = meshes.begin(); it != meshes.end(); it++)
-			(*it)->Render();
-		mesh2->Render();
+		ResourceManager::GetShader("Shadows").SetInt("shadowMap", 0);
+		for (auto obj : ObjectsManager::renderQueue)
+			obj->Render();
 
 		EventSystem::Update();
 
@@ -249,11 +153,11 @@ int main()
 		glfwPollEvents();
 	}
 
-	glfwTerminate();
+	Initializer.Quit();
 	return 0;
 }
 
-void RenderText(Shader& shader, std::string text, float x, float y, float scale, glm::vec3 color)
+void RenderText(const Shader& shader, std::string text, float x, float y, float scale, Color color)
 {
 	// activate corresponding render state	
 	shader.Use();
