@@ -3,13 +3,13 @@
 #include <list>
 
 #include "GameObject.h"
-#include "../Components/RendererComponentBase.h"
 
 class ObjectsManager final
 {
 private:
 	friend int main();
 	friend class RendererComponentBase;
+	friend class LightingController;
 
 	ObjectsManager() = delete;
 

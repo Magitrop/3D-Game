@@ -9,6 +9,7 @@ class GameObject;
 friend class GameObject; \
 protected: \
 explicit name(GameObject* gameObject) : base(gameObject) { OnCreate(); } \
+virtual ~name() override { OnDestroy(); } \
 
 #define ATTACH_UPDATE \
 EventSystem::AttachUpdateEventListener(GetComponentID(), \
@@ -77,7 +78,7 @@ protected:
 		::operator delete[](ptr);
 	}
 
-	~Component();
+	virtual ~Component();
 public:
 	GameObject* const gameObject;
 

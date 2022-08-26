@@ -30,6 +30,7 @@
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
 #include "Controllers/ResourceManager.h"
+#include "Components/LineRendererComponent.h"
 
 using glm::Matrix4x4;
 
@@ -62,7 +63,7 @@ int main()
 	LoadModels();
 
 	LightingController::depthShader = &ResourceManager::GetShader("Depth");
-	LightingController::lightPos = Vector3(-4, 4, 5);
+	LightingController::lightPos = Vector3(-1, 4, -1);
 	LightingController::Initialize();
 
 	std::vector<Texture> textures = { };
@@ -119,15 +120,24 @@ int main()
 
 	Matrix4x4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
 
-	std::vector<ModelRendererComponent*> meshesWithShadows { meshObj1, meshObj2 };
+	LineRendererComponent* line = ObjectsManager::Instantiate<LineRendererComponent>();
+	line->connectLines = false;
+	line->gameObject->transform->Translate({ 1, 0, 4 });
 
-	float t = 0;
+	//ObjectsManager::DestroyObject(meshObj2->gameObject);
+
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
-		LightingController::PrepareDepthMap(meshesWithShadows);
+		Vector3 pos = meshObj1->gameObject->transform->GetPosition();
+		line->SetPoints(std::vector<Vector3> {
+			pos + Vector3(0, 0, 0), pos + Vector3(1, 0, 0),
+			pos + Vector3(0, 0, 0), pos + Vector3(0, 1, 0),
+			pos + Vector3(0, 0, 0), pos + Vector3(0, 0, 1)
+		});
+		LightingController::PrepareDepthMap();
 
 		glViewport(0, 0, Initializer.windowSize.x, Initializer.windowSize.y);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		RenderText(
 			ResourceManager::GetShader("Text"),
@@ -137,13 +147,18 @@ int main()
 			ResourceManager::GetShader("Text"),
 			Vectors::VectorToString(camera->gameObject->transform->GetPosition()),
 			0.0f, 40.0f, 0.75f, Color(1.0f, 1.0f, 1.0f, 1.0f));
-		glUniformMatrix4fv(glGetUniformLocation(ResourceManager::GetShader("Text").ID, "projection"), 1, GL_FALSE, &projection[0][0]);
+		ResourceManager::GetShader("Text").setMat4("projection", projection);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
 		ResourceManager::GetShader("Shadows").SetInt("shadowMap", 0);
-		for (auto obj : ObjectsManager::renderQueue)
+		for (auto& obj : ObjectsManager::renderQueue)
 			obj->Render();
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glLineWidth(3);
+		line->Render();
+		glLineWidth(1);
 
 		EventSystem::Update();
 

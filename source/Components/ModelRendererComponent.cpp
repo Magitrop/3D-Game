@@ -8,6 +8,7 @@
 #include "ModelRendererComponent.h"
 #include "../Shaders/Shader.h"
 #include "../Controllers/LightingController.h"
+#include "../Controllers/ResourceManager.h"
 
 void ModelRendererComponent::SetShader(const Shader* newShader)
 {
@@ -21,24 +22,15 @@ void ModelRendererComponent::Render()
 
 	currentShader->Use();
 
-	// attach MVP matrix
-	glUniformMatrix4fv(
-		glGetUniformLocation(currentShader->ID, "MVP"),
-		1,
-		GL_FALSE,
-		&gameObject->transform->GetMVPMatrix()[0][0]);
+	currentShader->setMat4("MVP", gameObject->transform->GetMVPMatrix());
 	currentShader->setMat4("projection", EventSystem::GetMainCamera()->GetProjectionMatrix());
 	currentShader->setMat4("view", EventSystem::GetMainCamera()->GetViewMatrix());
 	currentShader->setMat4("model", gameObject->transform->GetModelMatrix());
 	currentShader->setVec3("lightPos", LightingController::lightPos);
-	currentShader->setMat4("lightSpaceMatrix", LightingController::lightSpaceMatrix);
+	currentShader->setMat4("lightSpaceMatrix", LightingController::GetLightSpaceMatrix());
 	currentShader->setVec3("viewPos", EventSystem::GetMainCamera()->gameObject->transform->GetPosition());
-
-	// attach light direction vector
-	glUniform3fv(
-		glGetUniformLocation(currentShader->ID, "lightDirection"),
-		1,
-		&LightingController::lightPos[0]);
+	currentShader->setVec3("lightDirection", LightingController::lightPos);
+	currentShader->SetBool("receiveShadows", receiveShadows);
 
 	for (auto& mesh : model->meshes)
 		mesh->Render(*currentShader);
@@ -46,15 +38,14 @@ void ModelRendererComponent::Render()
 	glUseProgram(0);
 }
 
-void ModelRendererComponent::RenderDepth(const Shader* depthShader)
+void ModelRendererComponent::RenderDepth()
 {
-	if (model == nullptr)
+	if (model == nullptr || !castShadows)
 		return;
 
-	depthShader->Use();
-
-	depthShader->setMat4("model", gameObject->transform->GetModelMatrix());
-	depthShader->setMat4("lightSpaceMatrix", LightingController::lightSpaceMatrix);
+	LightingController::depthShader->Use();
+	LightingController::depthShader->setMat4("model", gameObject->transform->GetModelMatrix());
+	LightingController::depthShader->setMat4("lightSpaceMatrix", LightingController::GetLightSpaceMatrix());
 
 	for (auto& mesh : model->meshes)
 	{

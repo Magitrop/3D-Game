@@ -11,10 +11,11 @@ in VS_OUT
 } fs_in;
  
 uniform sampler2D shadowMap;
- 
+
 uniform vec3 lightPos;
 uniform vec3 viewPos;
- 
+uniform int receiveShadows;
+
 float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -55,7 +56,7 @@ void main()
 	float closestDepth = texture(shadowMap, projCoords.xy).r; 
 	float currentDepth = projCoords.z;
 
-	vec3 lighting = (ambient + (1 - shadow) * (diffuse/* + specular*/)) * color;
+	vec3 lighting = (ambient + (receiveShadows > 0.5 ? (1 - shadow) : 1) * (diffuse/* + specular*/)) * color;
 	
 	//FragColor = vec4(vec3(fs_in.FragHeight), 1.0);
 	//FragColor = vec4(normal, 1);

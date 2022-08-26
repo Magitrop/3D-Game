@@ -26,8 +26,9 @@ protected:
 	const Model* model = nullptr;
 	const Shader* currentShader = nullptr;
 public:
+	virtual void Render() override;
+	virtual void RenderDepth() override;
+
 	void SetModel(const Model* newModel);
 	void SetShader(const Shader* newShader);
-	virtual void Render() override;
-	void RenderDepth(const Shader* depthShader);
 };

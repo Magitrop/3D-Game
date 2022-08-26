@@ -84,7 +84,7 @@ void LightingController::SetShadowMapScale(unsigned int width, unsigned int heig
 	RecalculateDepthMap();
 }
 
-void LightingController::PrepareDepthMap(std::vector<ModelRendererComponent*> meshesWithShadows)
+void LightingController::PrepareDepthMap()
 {
 	RecalculateDepthMap();
 
@@ -95,12 +95,27 @@ void LightingController::PrepareDepthMap(std::vector<ModelRendererComponent*> me
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, GetDepthMapID());
-	for (int i = 0; i < meshesWithShadows.size(); i++)
-		meshesWithShadows[i]->RenderDepth(depthShader);
+	for (auto& it : ObjectsManager::renderQueue)
+		it->RenderDepth();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint LightingController::GetDepthMapID()
 {
 	return depthMap;
+}
+
+Matrix4x4 LightingController::GetLightProjectionMatrix()
+{
+	return lightProjection;
+}
+
+Matrix4x4 LightingController::GetLightViewMatrix()
+{
+	return lightView;
+}
+
+Matrix4x4 LightingController::GetLightSpaceMatrix()
+{
+	return lightSpaceMatrix;
 }

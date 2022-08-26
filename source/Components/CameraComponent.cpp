@@ -46,6 +46,10 @@ const glm::Matrix4x4& CameraComponent::GetViewMatrix() const
 {
 	return viewMatrix;
 }
+const glm::Matrix4x4 CameraComponent::GetProjectionViewMatrix() const
+{
+	return projectionMatrix * viewMatrix;
+}
 
 void CameraComponent::OnCreate()
 {
@@ -120,15 +124,18 @@ void CameraComponent::OnUpdate()
 	else
 		movementDirection.x = 0;
 
-	targetPoint += 
-		glm::normalize(glm::proj(
-			gameObject->transform->GetForward(),
-			glm::cross(Vectors::up, gameObject->transform->GetRight()))) * movementDirection.y * movementSpeed +
-		gameObject->transform->GetRight() * movementDirection.x * movementSpeed;
-	gameObject->transform->Translate(
-		glm::normalize(glm::proj(
-			gameObject->transform->GetForward(),
-			glm::cross(Vectors::up, gameObject->transform->GetRight()))) * movementDirection.y * movementSpeed +
-		gameObject->transform->GetRight() * movementDirection.x * movementSpeed);
-	RecalculateViewMatrix();
+	if (movementDirection.x || movementDirection.y)
+	{
+		targetPoint +=
+			glm::normalize(glm::proj(
+				gameObject->transform->GetForward(),
+				glm::cross(Vectors::up, gameObject->transform->GetRight()))) * movementDirection.y * movementSpeed +
+			gameObject->transform->GetRight() * movementDirection.x * movementSpeed;
+		gameObject->transform->Translate(
+			glm::normalize(glm::proj(
+				gameObject->transform->GetForward(),
+				glm::cross(Vectors::up, gameObject->transform->GetRight()))) * movementDirection.y * movementSpeed +
+			gameObject->transform->GetRight() * movementDirection.x * movementSpeed);
+		RecalculateViewMatrix();
+	}
 }

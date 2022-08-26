@@ -22,7 +22,7 @@ Matrix4x4 TransformComponent::GetModelMatrix() const
 	res = glm::rotate(res, glm::radians(GetRotation().z), Vectors::forward/*GetForward()*/);
 	res = glm::rotate(res, glm::radians(GetRotation().y), Vectors::up/*GetUp()*/);
 	res = glm::rotate(res, glm::radians(GetRotation().x), Vectors::right/*GetRight()*/);
-	res = glm::translate(res, GetPosition());
+	res = glm::translate(res, GetPosition() / GetScale());
 	return res;
 }
 const Matrix4x4& TransformComponent::GetMVPMatrix()
@@ -83,7 +83,7 @@ const Vector3& TransformComponent::SetUp(const Vector3& vec)
 	return forward;
 }
 
-const Vector3& TransformComponent::Translate(const Vector3& vec) { return position += vec / scale; }
+const Vector3& TransformComponent::Translate(const Vector3& vec) { return position += vec; }
 const Vector3& TransformComponent::Translate(const Vector3& direction, float distance)
 {
 	return position += glm::normalize(direction) * distance;

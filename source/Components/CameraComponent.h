@@ -44,6 +44,7 @@ public:
 	void SetClippingPlanes(float near, float far);
 	const glm::Matrix4x4& GetProjectionMatrix() const;
 	const glm::Matrix4x4& GetViewMatrix() const;
+	const glm::Matrix4x4 GetProjectionViewMatrix() const;
 
 	virtual void OnCreate() override;
 	virtual void OnUpdate() override;
