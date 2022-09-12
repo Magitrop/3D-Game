@@ -3,7 +3,6 @@
 layout(location = 0) in vec3 vertexPosition;
 layout(location = 2) in vec3 normal;
 
-out vec4 vertexColor;
 out vec3 pos;
 
 uniform mat4 MVP;
@@ -13,7 +12,4 @@ void main()
 {
 	gl_Position = MVP * vec4(vertexPosition, 1);
 	pos = vertexPosition;
-
-	float cosTheta = 1;//clamp(dot(normal, -lightDirection), 0, 1);
-	vertexColor = vec4(cosTheta, cosTheta, cosTheta, 1);
 }

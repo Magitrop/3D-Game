@@ -10,6 +10,7 @@
 #include <GLFW\glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "../Math/Ray.h"
 
 class CameraComponent : public Component,
 	MustBeUniqueComponentAttribute
@@ -18,6 +19,8 @@ class CameraComponent : public Component,
 protected:
 	glm::Matrix4x4 projectionMatrix;
 	glm::Matrix4x4 viewMatrix;
+	glm::Matrix4x4 projectionViewMatrix;
+	glm::Matrix4x4 projectionViewMatrixInverted;
 
 	std::vector<int> sideMotionOverrides;		// right or left
 	std::vector<int> forwardMotionOverrides;	// forward or backward
@@ -44,7 +47,10 @@ public:
 	void SetClippingPlanes(float near, float far);
 	const glm::Matrix4x4& GetProjectionMatrix() const;
 	const glm::Matrix4x4& GetViewMatrix() const;
-	const glm::Matrix4x4 GetProjectionViewMatrix() const;
+	const glm::Matrix4x4& GetProjectionViewMatrix() const;
+	const glm::Matrix4x4& GetInvertedProjectionViewMatrix() const;
+	Vector3 ScreenToWorldPoint(Vector2 screenPoint) const;
+	Ray ScreenPointToRay(Vector2 screenPoint) const;
 
 	virtual void OnCreate() override;
 	virtual void OnUpdate() override;

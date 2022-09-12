@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-set(project_name opengl)
+set(PROJECT_NAME opengl)
 
-project(${project_name})
+project(${PROJECT_NAME})
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Bullet REQUIRED PATHS "libraries/bullet3")
+find_package(Imgui REQUIRED PATHS "libraries/imgui")
 
 include_directories(libraries/freetype/include)
 find_library(FreetypeLib freetype "libraries/freetype/release dll/win64")
@@ -11,8 +17,10 @@ include_directories(libraries/assimp/include)
 find_library(AssimpLib assimp "libraries/assimp/lib/Debug")
 
 add_executable(
-    ${project_name}
+    ${PROJECT_NAME}
         source/main.cpp
+
+        source/PerlinNoise.hpp
 
         source/Mesh.cpp
         source/Mesh.h
@@ -43,6 +51,8 @@ add_executable(
         source/Components/TextRendererComponent.h
         source/Components/ModelRendererComponent.cpp
         source/Components/ModelRendererComponent.h
+        source/Components/LineRendererComponent.cpp
+        source/Components/LineRendererComponent.h
 
         source/GameObject/GameObject.cpp
         source/GameObject/GameObject.h
@@ -51,6 +61,8 @@ add_executable(
 
         source/Math/Vectors.cpp
         source/Math/Vectors.h
+        source/Math/Ray.cpp
+        source/Math/Ray.h
 )
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -72,3 +84,19 @@ target_include_directories(${PROJECT_NAME} PRIVATE "libraries/freetype/include")
 
 target_link_libraries(${PROJECT_NAME} ${AssimpLib})
 target_include_directories(${PROJECT_NAME} PRIVATE "libraries/assimp/include")
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${BULLET_DEFINITIONS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${BULLET_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${BULLET_LIBRARIES})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${IMGUI_DEFINITIONS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${IMGUI_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE "libraries/imgui/include/include")
+target_link_libraries(${PROJECT_NAME} ${IMGUI_LIBRARIES})
+set(FILES_TO_ADD
+    "libraries/imgui/include/include/imgui_impl_glfw.h"
+    "libraries/imgui/include/include/imgui_impl_glfw.cpp"
+    "libraries/imgui/include/include/imgui_impl_opengl3.cpp"
+    "libraries/imgui/include/include/imgui_impl_opengl3.h"
+    "libraries/imgui/include/include/imgui_impl_opengl3_loader.h")
+target_sources(${PROJECT_NAME} PRIVATE ${FILES_TO_ADD})

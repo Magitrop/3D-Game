@@ -26,6 +26,8 @@ private:
 
 	static Vector2 mouseWheelOffset;
 
+	static bool leftMouseButtonLastFrame;
+	static bool rightMouseButtonLastFrame;
 	static bool leftMouseButton;
 	static bool rightMouseButton;
 	static bool keys[GLFW_KEY_LAST];
@@ -35,9 +37,9 @@ public:
 	static const Vector2& GetMousePosition();
 	static const Vector2& GetMouseMotion();
 	static const Vector2& GetMouseWheelOffset();
-	static const bool& GetKey(int keyCode);
-	static const bool& GetLeftMouseButton();
-	static const bool& GetRightMouseButton();
+	static const bool GetKey(int keyCode);
+	static const bool GetMouseButton(int button);
+	static const bool GetMouseButtonClick(int button);
 	static void SetAsMainCamera(CameraComponent* cam);
 	static CameraComponent* const GetMainCamera();
 

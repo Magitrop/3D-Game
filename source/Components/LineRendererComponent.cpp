@@ -105,8 +105,10 @@ void LineRendererComponent::Render()
 	sh.Use();
     sh.setMat4("MVP", EventSystem::GetMainCamera()->GetProjectionViewMatrix());
     sh.setVec3("objPos", gameObject->transform->GetPosition());
+    sh.setVec4("vertexColor", color);
 
     glBindVertexArray(VAO);
+    glLineWidth(lineWidth);
     glDrawElements(connectLines ? GL_LINE_STRIP : GL_LINES, indices.size(), GL_UNSIGNED_INT, &indices[0]);
 
     glBindVertexArray(0);

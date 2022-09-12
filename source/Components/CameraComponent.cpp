@@ -16,6 +16,8 @@ void CameraComponent::RecalculateProjectionMatrix()
 			Initializer.GetAspectRatio(),
 			nearClipPlane,
 			farClipPlane);
+	projectionViewMatrix = projectionMatrix * viewMatrix;
+	projectionViewMatrixInverted = glm::inverse(projectionMatrix * viewMatrix);
 }
 void CameraComponent::RecalculateViewMatrix()
 {
@@ -25,6 +27,8 @@ void CameraComponent::RecalculateViewMatrix()
 			targetPoint,//cameraPos + camera->forward,
 			Vectors::up
 		);
+	projectionViewMatrix = projectionMatrix * viewMatrix;
+	projectionViewMatrixInverted = glm::inverse(projectionMatrix * viewMatrix);
 }
 
 void CameraComponent::SetFieldOfView(float fov)
@@ -46,9 +50,40 @@ const glm::Matrix4x4& CameraComponent::GetViewMatrix() const
 {
 	return viewMatrix;
 }
-const glm::Matrix4x4 CameraComponent::GetProjectionViewMatrix() const
+const glm::Matrix4x4& CameraComponent::GetProjectionViewMatrix() const
 {
-	return projectionMatrix * viewMatrix;
+	return projectionViewMatrix;
+}
+
+const glm::Matrix4x4& CameraComponent::GetInvertedProjectionViewMatrix() const
+{
+	return projectionViewMatrixInverted;
+}
+
+Ray CameraComponent::ScreenPointToRay(Vector2 screenPoint) const
+{
+	Vector4 point = Vectors::AsVector4(screenPoint);
+	Matrix4x4 invMat = GetInvertedProjectionViewMatrix();
+	Vector4 near(2.f * point.x / Initializer.windowSize.x - 1.f, 1.f - 2.f * point.y / Initializer.windowSize.y, -1, 1.0);
+	Vector4 far(2.f * point.x / Initializer.windowSize.x - 1.f, 1.f - 2.f * point.y / Initializer.windowSize.y, 1, 1.0);
+	Vector4 nearResult = invMat * near;
+	Vector4 farResult = invMat * far;
+	nearResult /= nearResult.w;
+	farResult /= farResult.w;
+	return Ray(gameObject->transform->GetPosition(), glm::normalize(Vector3(farResult - nearResult)));
+}
+
+Vector3 CameraComponent::ScreenToWorldPoint(Vector2 screenPoint) const
+{
+	Vector4 point = Vectors::AsVector4(screenPoint);
+	Matrix4x4 invMat = glm::inverse(GetProjectionViewMatrix());
+	Vector4 near(2 * point.x / Initializer.windowSize.x - 1.f, 1.f - 2 * point.y / (Initializer.windowSize.y), -1, 1.0);
+	Vector4 far(2 * point.x / Initializer.windowSize.x - 1.f, 1.f - 2 * point.y / (Initializer.windowSize.y), 1, 1.0);
+	Vector4 nearResult = invMat * near;
+	Vector4 farResult = invMat * far;
+	nearResult /= nearResult.w;
+	farResult /= farResult.w;
+	return gameObject->transform->GetPosition() + glm::normalize(Vector3(farResult - nearResult));
 }
 
 void CameraComponent::OnCreate()
@@ -64,7 +99,7 @@ void CameraComponent::OnCreate()
 
 void CameraComponent::OnMouseMove(GLFWwindow* window, double x, double y, Vector2 motion)
 {
-	if (EventSystem::GetRightMouseButton())
+	if (EventSystem::GetMouseButton(GLFW_MOUSE_BUTTON_RIGHT))
 	{
 		// translating mouse motion into rotation
 		newRotation.x -= EventSystem::GetMouseMotion().y * rotationSpeed;
@@ -106,6 +141,7 @@ void CameraComponent::OnWindowResize(GLFWwindow* window, int width, int height)
 void CameraComponent::OnMouseWheel(GLFWwindow* window, double xoffset, double yoffset)
 {
 	gameObject->transform->Translate(gameObject->transform->GetForward() * static_cast<float>(yoffset) * zoomIntensity);
+	RecalculateViewMatrix();
 }
 
 void CameraComponent::OnUpdate()

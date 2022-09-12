@@ -34,10 +34,14 @@ namespace Vectors
 	extern float Angle(Vector2 a, Vector2 b);
 	extern float Angle(Vector3 a, Vector3 b);
 	extern Vector3 MultiplyPoint(const Matrix4x4& m, const Vector3& p);
+	extern Vector4 MultiplyPoint(const Matrix4x4& m, const Vector4& p);
 
 	extern std::string VectorToString(const Vector2& vec);
 	extern std::string VectorToString(const Vector3& vec);
 	extern std::string VectorToString(const Vector4& vec);
+
+	extern Vector3 AsVector3(const Vector2& vec);
+	extern Vector4 AsVector4(const Vector2& vec);
 }
 
 std::ostream& operator << (std::ostream& stream, const Vector2& vec);

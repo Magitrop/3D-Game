@@ -32,11 +32,17 @@
 #include "Controllers/ResourceManager.h"
 #include "Components/LineRendererComponent.h"
 
+#include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
+#include "BulletCollision/BroadphaseCollision/btDbvtBroadphase.h"
+#include "btBulletCollisionCommon.h"
+#include "BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h"
+#include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 using glm::Matrix4x4;
-
-void RenderText(const Shader& shader, std::string text, float x, float y, float scale, Color color);
-
-unsigned int VAO, VBO;
 
 void LoadShaders()
 {
@@ -77,7 +83,7 @@ int main()
 	std::vector<unsigned int> triangles;
 
 	const siv::PerlinNoise::seed_type seed = 123456u;
-	const siv::PerlinNoise perlin { seed };
+	const siv::PerlinNoise perlin{ seed };
 
 	int sizeX = 30,
 		sizeZ = 30;
@@ -103,9 +109,9 @@ int main()
 			v->Position.y = height;
 	}*/
 	triangles.resize(sizeX * sizeZ * 6);
-	for (int ti = 0, vi = 0, z = 0; z < sizeZ; z++, vi++) 
+	for (int ti = 0, vi = 0, z = 0; z < sizeZ; z++, vi++)
 	{
-		for (int x = 0; x < sizeX; x++, ti += 6, vi++) 
+		for (int x = 0; x < sizeX; x++, ti += 6, vi++)
 		{
 			triangles[ti] = vi;
 			triangles[ti + 3] = triangles[ti + 2] = vi + 1;
@@ -118,102 +124,146 @@ int main()
 	meshObj2->SetShader(&ResourceManager::GetShader("Shadows"));
 	meshObj2->gameObject->transform->Scale(Vector3(10, 1, 10));
 
-	Matrix4x4 projection = glm::ortho(0.0f, Initializer.windowSize.x, 0.0f, Initializer.windowSize.y);
-
 	LineRendererComponent* line = ObjectsManager::Instantiate<LineRendererComponent>();
-	line->connectLines = false;
 	line->gameObject->transform->Translate({ 1, 0, 4 });
 
-	//ObjectsManager::DestroyObject(meshObj2->gameObject);
+	TextRendererComponent* text = ObjectsManager::Instantiate<TextRendererComponent>();
+	text->text = "abc";
+	text->gameObject->transform->Translate({ 0.f, 100.f, 0.f });
 
+	/*btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+
+	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+
+	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+	dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
+
+	for (int x = 0; x < 15; x++)
+		for (int z = 0; z < 15; z++)
+		{
+			btCollisionShape* boxCollisionShape = new btBoxShape(btVector3(0.5f, 0.05f, 0.5f));
+
+			btDefaultMotionState* motionstate = new btDefaultMotionState(btTransform(
+				btQuaternion(0, 0, 0, 1),
+				btVector3(x + 0.5f, 0, z + 0.5f)
+			));
+
+			btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
+				0,
+				motionstate,
+				boxCollisionShape,
+				btVector3(0, 0, 0)
+			);
+			btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
+
+			dynamicsWorld->addRigidBody(rigidBody);
+		}*/
+	
+	//rigidBody->setUserPointer((void*)meshObj1->gameObject);
+
+	LineRendererComponent* grid = ObjectsManager::Instantiate<LineRendererComponent>();
+	grid->connectLines = false;
+	std::vector<Vector3> points;
+	for (int x = 0; x < 16; x++)
+	{
+		points.push_back(Vector3(x, 0.01f, 0));
+		points.push_back(Vector3(x, 0.01f, 15));
+	}
+	for (int z = 0; z < 16; z++)
+	{
+		points.push_back(Vector3(0, 0.01f, z));
+		points.push_back(Vector3(15, 0.01f, z));
+	}
+	grid->SetPoints(points);
+
+	line->color = Color(1, 0, 0, 1);
+	line->lineWidth = 3;
+	line->useDepthBuffer = false;
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui_ImplGlfw_InitForOpenGL(Initializer.window, true);
+	ImGui_ImplOpenGL3_Init(NULL);
+	ImGui::StyleColorsDark();
+
+	//ObjectsManager::DestroyObject(meshObj2->gameObject);
 	while (!glfwWindowShouldClose(Initializer.window))
 	{
-		Vector3 pos = meshObj1->gameObject->transform->GetPosition();
-		line->SetPoints(std::vector<Vector3> {
-			pos + Vector3(0, 0, 0), pos + Vector3(1, 0, 0),
-			pos + Vector3(0, 0, 0), pos + Vector3(0, 1, 0),
-			pos + Vector3(0, 0, 0), pos + Vector3(0, 0, 1)
-		});
+		//if (EventSystem::GetMouseButtonClick(GLFW_MOUSE_BUTTON_LEFT))
+		{
+			/*Ray r = camera->ScreenPointToRay(EventSystem::GetMousePosition());
+			Vector3 out_end = r.origin + r.direction * 1000.0f;
+
+			btCollisionWorld::ClosestRayResultCallback RayCallback(
+				btVector3(r.origin.x, r.origin.y, r.origin.z),
+				btVector3(out_end.x, out_end.y, out_end.z)
+			);
+			dynamicsWorld->rayTest(
+				btVector3(r.origin.x, r.origin.y, r.origin.z),
+				btVector3(out_end.x, out_end.y, out_end.z),
+				RayCallback
+			);
+
+			if (RayCallback.hasHit())
+			{
+				auto& v = RayCallback.m_collisionObject->getWorldTransform().getOrigin();
+				Vector3 p(v.x(), v.y(), v.z());
+				line->SetPoints(std::vector<Vector3> {
+					p + Vector3(0.5f, 0.02f, -0.5f),
+					p + Vector3(0.5f, 0.02f, 0.5f),
+					p + Vector3(-0.5f, 0.02f, 0.5f),
+					p + Vector3(-0.5f, 0.02f, -0.5f),
+					p + Vector3(0.5f, 0.02f, -0.5f),
+				});
+			}*/
+		}
 		LightingController::PrepareDepthMap();
 
 		glViewport(0, 0, Initializer.windowSize.x, Initializer.windowSize.y);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		RenderText(
-			ResourceManager::GetShader("Text"),
-			Vectors::VectorToString(camera->gameObject->transform->GetRotation()), 
-			0.0f, 10.0f, 0.75f, Color(1.0f, 1.0f, 1.0f, 1.0f));
-		RenderText(
-			ResourceManager::GetShader("Text"),
-			Vectors::VectorToString(camera->gameObject->transform->GetPosition()),
-			0.0f, 40.0f, 0.75f, Color(1.0f, 1.0f, 1.0f, 1.0f));
-		ResourceManager::GetShader("Text").setMat4("projection", projection);
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		static ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+		ImGui::SetNextWindowPos(ImVec2(10, 10));
+		ImGui::SetNextWindowSize(ImVec2(200, 200));
+		if (ImGui::Begin("Menu", nullptr, flags))
+		{
+			ImGui::PushItemWidth(ImGui::GetWindowSize().x * 0.5f);
+			ImGui::Button("Hello", ImVec2(-1.0f, 0.0f));
+		}
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		text->RenderText();
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, LightingController::GetDepthMapID());
 		ResourceManager::GetShader("Shadows").SetInt("shadowMap", 0);
-		for (auto& obj : ObjectsManager::renderQueue)
-			obj->Render();
 
+		for (auto& obj : ObjectsManager::renderQueue)
+			if (obj->useDepthBuffer)
+				obj->Render();
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glLineWidth(3);
-		line->Render();
-		glLineWidth(1);
+		for (auto& obj : ObjectsManager::renderQueue)
+			if (!obj->useDepthBuffer)
+				obj->Render();
 
 		EventSystem::Update();
-
-		for (long long i = 0; i < 1999999; ++i);
-
 		glfwSwapBuffers(Initializer.window);
 		glfwPollEvents();
+
+		for (long long i = 0; i < 1999999; ++i);
 	}
 
 	Initializer.Quit();
 	return 0;
-}
-
-void RenderText(const Shader& shader, std::string text, float x, float y, float scale, Color color)
-{
-	// activate corresponding render state	
-	shader.Use();
-	glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
-	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(VAO);
-
-	// iterate through all characters
-	std::string::const_iterator c;
-	for (c = text.begin(); c != text.end(); c++)
-	{
-		TextHandler::Character ch = TextHandler::characters[*c];
-
-		float xpos = x + ch.Bearing.x * scale;
-		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-
-		float w = ch.Size.x * scale;
-		float h = ch.Size.y * scale;
-		// update VBO for each character
-		float vertices[6][4] = 
-		{
-			{ xpos,     ypos + h,   0.0f, 0.0f },
-			{ xpos,     ypos,       0.0f, 1.0f },
-			{ xpos + w, ypos,       1.0f, 1.0f },
-
-			{ xpos,     ypos + h,   0.0f, 0.0f },
-			{ xpos + w, ypos,       1.0f, 1.0f },
-			{ xpos + w, ypos + h,   1.0f, 0.0f }
-		};
-		// render glyph texture over quad
-		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-		// update content of VBO memory
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		// render quad
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-	}
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 }

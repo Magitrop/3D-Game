@@ -10,6 +10,7 @@ protected:
 public:
 	bool castShadows = true;
 	bool receiveShadows = true;
+	bool useDepthBuffer = true;
 
 	virtual void Render() = 0;
 	virtual void RenderDepth() {}

@@ -74,12 +74,32 @@ std::string Vectors::VectorToString(const Vector4& vec)
 	return std::string("(" + std::to_string(vec.x) + ", " + std::to_string(vec.y) + ", " + std::to_string(vec.z) + ", " + std::to_string(vec.w) + ")");
 }
 
+Vector3 Vectors::AsVector3(const Vector2& vec)
+{
+	return Vector3(vec.x, vec.y, 0);
+}
+
+Vector4 Vectors::AsVector4(const Vector2& vec)
+{
+	return Vector4(vec.x, vec.y, 0, 0);
+}
+
 Vector3 Vectors::MultiplyPoint(const Matrix4x4& m, const Vector3& p)
 {
-	Vector3 res;
+	Vector3 res(0);
 	res.x = (m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z) + m[0][3];
 	res.y = (m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z) + m[1][3];
 	res.z = (m[2][0] * p.x + m[2][1] * p.y + m[2][2] * p.z) + m[2][3];
+	return res;
+}
+
+Vector4 Vectors::MultiplyPoint(const Matrix4x4& m, const Vector4& p)
+{
+	Vector4 res(0);
+	res.x = (m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z) + m[0][3];
+	res.y = (m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z) + m[1][3];
+	res.z = (m[2][0] * p.x + m[2][1] * p.y + m[2][2] * p.z) + m[2][3];
+	res.w = (m[3][0] * p.x + m[3][1] * p.y + m[3][2] * p.z) + m[3][3];
 	return res;
 }
 

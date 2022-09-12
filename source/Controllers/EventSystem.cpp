@@ -20,6 +20,8 @@ Vector2 EventSystem::mouseMotion;
 
 Vector2 EventSystem::mouseWheelOffset;
 
+bool EventSystem::leftMouseButtonLastFrame;
+bool EventSystem::rightMouseButtonLastFrame;
 bool EventSystem::leftMouseButton;
 bool EventSystem::rightMouseButton;
 bool EventSystem::keys[GLFW_KEY_LAST];
@@ -38,17 +40,27 @@ const Vector2& EventSystem::GetMouseWheelOffset()
 {
 	return mouseWheelOffset;
 }
-const bool& EventSystem::GetKey(int keyCode)
+const bool EventSystem::GetKey(int keyCode)
 {
 	return keys[keyCode];
 }
-const bool& EventSystem::GetLeftMouseButton()
+const bool EventSystem::GetMouseButton(int button)
 {
-	return leftMouseButton;
+	switch (button)
+	{
+	case GLFW_MOUSE_BUTTON_LEFT: return leftMouseButton;
+	case GLFW_MOUSE_BUTTON_RIGHT: return rightMouseButton;
+	default: return false;
+	}
 }
-const bool& EventSystem::GetRightMouseButton()
+const bool EventSystem::GetMouseButtonClick(int button)
 {
-	return rightMouseButton;
+	switch (button)
+	{
+	case GLFW_MOUSE_BUTTON_LEFT: return leftMouseButtonLastFrame && !leftMouseButton;
+	case GLFW_MOUSE_BUTTON_RIGHT: return rightMouseButtonLastFrame && !rightMouseButton;
+	default: return false;
+	}
 }
 
 void EventSystem::SetAsMainCamera(CameraComponent* cam)
@@ -125,6 +137,8 @@ void EventSystem::ReleaseWindowResizeEventListener(long long listenerID)
 
 void EventSystem::Update()
 {
+	leftMouseButtonLastFrame = leftMouseButton;
+	rightMouseButtonLastFrame = rightMouseButton;
 	for (auto it = onUpdate.begin(); it != onUpdate.end(); it++)
 		it->second();
 }
